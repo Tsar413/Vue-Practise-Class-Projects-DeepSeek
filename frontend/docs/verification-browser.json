@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-08T16:00:44.295Z",
+  "frontend": "http://localhost:5173",
+  "checks": [
+    {
+      "name": "未登录访问受保护路由会跳转登录页",
+      "passed": true
+    },
+    {
+      "name": "教师登录成功并显示角色",
+      "passed": true
+    },
+    {
+      "name": "教师导航不显示学生页面",
+      "passed": true
+    },
+    {
+      "name": "教师首页显示姓名",
+      "passed": true
+    },
+    {
+      "name": "班级列表展示演示班级",
+      "passed": false,
+      "detail": "未找到文本「DEMO2026」，实际「暂无数据。请调整查询条件，或刷新后再查看。」"
+    },
+    {
+      "name": "编辑班级时编号不可修改",
+      "passed": true
+    },
+    {
+      "name": "用户列表展示学生账号",
+      "passed": true
+    },
+    {
+      "name": "按班级查询到学生工作空间",
+      "passed": false,
+      "detail": "未找到文本「DEMO2026001」，实际「暂无数据。请调整查询条件，或刷新后再查看。」"
+    },
+    {
+      "name": "工作空间状态为启用",
+      "passed": false,
+      "detail": "未找到文本「启用」，实际「暂无数据。请调整查询条件，或刷新后再查看。」"
+    },
+    {
+      "name": "浏览器走查整体执行",
+      "passed": false,
+      "detail": "Error: ENOENT: no such file or directory, stat '/home/tsar413/projects/Vue-Practise-Class-Projects-DeepSeek/frontend/scripts/fixtures/students.xlsx'"
+    }
+  ],
+  "errors": []
+}

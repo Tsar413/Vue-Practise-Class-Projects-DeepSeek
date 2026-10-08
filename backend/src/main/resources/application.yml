@@ -1,0 +1,44 @@
+server:
+  port: ${SERVER_PORT:8100}
+
+spring:
+  application:
+    name: vue-practice-backend
+  thymeleaf:
+    cache: false
+    prefix: classpath:/views/
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 本机开发默认连接本地独立测试库，可用环境变量覆盖；不要连接线上数据库
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/vue_practise_backend?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=GMT%2B8}
+    username: ${DB_USERNAME:vue_practice}
+    password: ${DB_PASSWORD:vue_practice_local}
+  jpa:
+    hibernate:
+      # 与参考项目一致：由实体定义自动建表 / 补列
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+repair:
+  files:
+    # 图片存储根目录，可用环境变量覆盖；不要提交到 Git
+    root: ${REPAIR_FILES_ROOT:./repair-files}
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173}
+
+logging:
+  level:
+    root: INFO
+    com.study.vuePractiseBackend: INFO

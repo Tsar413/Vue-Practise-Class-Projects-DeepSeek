@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-08T16:20:32.826Z",
+  "frontend": "http://localhost:5173",
+  "checks": [
+    {
+      "name": "未登录访问受保护路由会跳转登录页",
+      "passed": true
+    },
+    {
+      "name": "教师登录成功并显示角色",
+      "passed": true
+    },
+    {
+      "name": "教师导航不显示学生页面",
+      "passed": true
+    },
+    {
+      "name": "教师首页显示姓名",
+      "passed": true
+    },
+    {
+      "name": "班级列表展示演示班级",
+      "passed": true
+    },
+    {
+      "name": "班级列表展示班级名称",
+      "passed": true
+    },
+    {
+      "name": "编辑班级时编号不可修改",
+      "passed": true
+    },
+    {
+      "name": "用户列表展示学生账号",
+      "passed": true
+    },
+    {
+      "name": "用户列表展示学生姓名",
+      "passed": true
+    },
+    {
+      "name": "用户列表展示教师账号",
+      "passed": true
+    },
+    {
+      "name": "按班级查询到学生工作空间",
+      "passed": true
+    },
+    {
+      "name": "工作空间状态为启用",
+      "passed": true
+    },
+    {
+      "name": "批量导入返回结果面板",
+      "passed": true
+    },
+    {
+      "name": "导入结果统计与预期一致（4 行、失败 1 行、成功+跳过 3 行）",
+      "passed": true
+    },
+    {
+      "name": "导入结果列出被跳过的行",
+      "passed": true
+    },
+    {
+      "name": "导入结果列出失败的行",
+      "passed": true
+    },
+    {
+      "name": "教师系统文档展示23个接口",
+      "passed": true
+    },
+    {
+      "name": "抢票文档展示15个接口",
+      "passed": true
+    },
+    {
+      "name": "教师业务文档只读，不提供发送按钮",
+      "passed": true
+    },
+    {
+      "name": "教师业务文档不显示修改提示",
+      "passed": true
+    },
+    {
+      "name": "教师退出登录返回登录页",
+      "passed": true
+    },
+    {
+      "name": "学生登录成功并显示角色",
+      "passed": true
+    },
+    {
+      "name": "学生首页读取到本人工作空间",
+      "passed": true
+    },
+    {
+      "name": "学生直接访问教师路由被拦截",
+      "passed": true
+    },
+    {
+      "name": "复制到的接口基础地址格式正确（含本人访问码）",
+      "passed": true
+    },
+    {
+      "name": "抢票模拟用户列表加载成功",
+      "passed": true
+    },
+    {
+      "name": "抢票活动列表加载成功",
+      "passed": true
+    },
+    {
+      "name": "票券记录查询完成",
+      "passed": true
+    },
+    {
+      "name": "报修模拟用户列表加载成功",
+      "passed": true
+    },
+    {
+      "name": "报修设备列表加载成功",
+      "passed": true
+    },
+    {
+      "name": "报修工单列表加载成功",
+      "passed": true
+    },
+    {
+      "name": "工单详情弹窗展示工单编号",
+      "passed": true
+    },
+    {
+      "name": "工单处理记录展示处理内容",
+      "passed": true
+    },
+    {
+      "name": "未评价工单返回明确提示",
+      "passed": true
+    },
+    {
+      "name": "无图片工单给出空状态提示",
+      "passed": true
+    },
+    {
+      "name": "390px 宽度下接口地址页无横向溢出",
+      "passed": true
+    },
+    {
+      "name": "390px 宽度下数据重置页无横向溢出",
+      "passed": true
+    },
+    {
+      "name": "学生文档不显示系统管理分组",
+      "passed": true
+    },
+    {
+      "name": "学生默认进入抢票文档",
+      "passed": true
+    },
+    {
+      "name": "缺少必填参数时给出本地校验提示",
+      "passed": true
+    },
+    {
+      "name": "本地校验失败不启动十秒冷却",
+      "passed": true
+    },
+    {
+      "name": "文档真实请求返回 HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "实际响应包含真实业务数据",
+      "passed": true
+    },
+    {
+      "name": "请求成功后显示冷却提示",
+      "passed": true
+    },
+    {
+      "name": "请求成功后写入十秒冷却截止时间",
+      "passed": true
+    },
+    {
+      "name": "重新打开页面后冷却仍保留",
+      "passed": true
+    },
+    {
+      "name": "冷却期间发送按钮禁用",
+      "passed": true
+    },
+    {
+      "name": "冷却截止时间没有被重置",
+      "passed": true
+    },
+    {
+      "name": "只读数据查询不受文档冷却限制",
+      "passed": true
+    },
+    {
+      "name": "学生自助重置成功",
+      "passed": true
+    },
+    {
+      "name": "重置成功后按钮进入五分钟冷却",
+      "passed": true
+    },
+    {
+      "name": "五分钟冷却期间重置按钮禁用",
+      "passed": true
+    },
+    {
+      "name": "重置成功后写入五分钟冷却截止时间",
+      "passed": true
+    },
+    {
+      "name": "重新打开页面后重置冷却截止时间不变",
+      "passed": true
+    },
+    {
+      "name": "另一名学生不受该冷却影响",
+      "passed": true
+    },
+    {
+      "name": "浏览器控制台无未处理脚本错误",
+      "passed": true
+    }
+  ],
+  "errors": []
+}
