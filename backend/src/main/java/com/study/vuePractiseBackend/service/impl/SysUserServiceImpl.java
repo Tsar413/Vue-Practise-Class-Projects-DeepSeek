@@ -299,6 +299,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new IllegalArgumentException("用户编号不能为空");
         }
         id = id.trim();
+        // 加锁顺序统一为「sys_user → sys_login_token」，与登录路径一致，
+        // 避免两条路径因加锁顺序不同而互相等待。
+        baseMapper.selectByIdForUpdate(id);
         // 删除网页登录凭证和长期 API 访问码
         sysLoginService.deleteByUserId(id);
         // 清理两个项目的数据与工作空间

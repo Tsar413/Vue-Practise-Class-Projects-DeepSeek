@@ -1,0 +1,46 @@
+[
+  {
+    "test": "uploaded images physically exist in isolated workspace directories",
+    "passed": true
+  },
+  {
+    "test": "student B cannot read student A image",
+    "passed": true
+  },
+  {
+    "test": "fault image bound to actual order",
+    "passed": true
+  },
+  {
+    "test": "failed database insert returns failure and rollback removes newly saved disk file",
+    "passed": true
+  },
+  {
+    "test": "failed reset rolls back attachment and queued cleanup together",
+    "passed": true
+  },
+  {
+    "test": "rolled-back reset preserves disk image across scheduled cleanup cycle",
+    "passed": true
+  },
+  {
+    "test": "committed reset succeeds",
+    "passed": true
+  },
+  {
+    "test": "committed reset deletes physical image and consumes task",
+    "passed": true
+  },
+  {
+    "test": "student B database record and physical image survive student A reset",
+    "passed": true
+  },
+  {
+    "test": "temporary image owner can delete",
+    "passed": true
+  },
+  {
+    "test": "temporary image deletion also removes physical file",
+    "passed": true
+  }
+]

@@ -1,0 +1,41 @@
+[
+  {
+    "test": "foreign server with identical health response and project cwd is rejected",
+    "passed": true,
+    "detail": {
+      "returncode": 1
+    }
+  },
+  {
+    "test": "foreign process in state file is not stopped",
+    "passed": true,
+    "detail": {
+      "returncode": 1
+    }
+  },
+  {
+    "test": "concurrent and repeated starts preserve one recorded frontend",
+    "passed": true,
+    "detail": {
+      "returncodes": [
+        0,
+        4
+      ],
+      "repeat": 0
+    }
+  },
+  {
+    "test": "owned frontend group stops and port is released",
+    "passed": true,
+    "detail": {
+      "returncode": 0
+    }
+  },
+  {
+    "test": "startup timeout returns failure and removes the newly started process group",
+    "passed": true,
+    "detail": {
+      "returncode": 1
+    }
+  }
+]

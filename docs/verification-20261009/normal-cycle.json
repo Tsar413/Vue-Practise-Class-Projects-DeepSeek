@@ -1,0 +1,22 @@
+[
+  {
+    "test": "repeated normal start preserves recorded process identities",
+    "passed": true
+  },
+  {
+    "test": "normal stop releases both ports and leaves unrelated server alive",
+    "passed": true
+  },
+  {
+    "test": "normal stop removes backend and frontend process groups including JVM children",
+    "passed": true
+  },
+  {
+    "test": "normal stop preserves existing MySQL and Harness",
+    "passed": true
+  },
+  {
+    "test": "normal services restarted successfully",
+    "passed": true
+  }
+]

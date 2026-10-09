@@ -1,5 +1,7 @@
 # 复用范围与重新实现范围
 
+> 本页复用文件数量与开发来源描述保留原178文件基准的历史口径；本轮对登录/账号文件及脚本的修改由 Harness 和 Codex 分别记录在 [最终验收](07-final-acceptance.md)，不将基准逐字节相同数量当作修改后的实时统计。
+
 本文档如实划分本轮工作的来源：哪些内容由教师提供并被直接复用，
 哪些内容由本次 Harness 重新编写，哪些内容由教师后续审核或修改。
 所有结论都可用下面的命令复核。
@@ -116,7 +118,7 @@ public interface XxxMapper extends BaseMapper<Xxx> {
 | 移除未使用的 `spring-boot-starter-data-redis` | 参考项目声明了依赖但源码零使用；保留会让服务在无 Redis 时启动失败 | 无（不涉及任何接口） |
 | 显式设置 `maven-compiler-plugin` 的 `<proc>full</proc>` | JDK 21 起注解处理需显式开启，否则 Lombok 可能不生成访问器 | 无（只影响构建可复现性） |
 | 保持 `ddl-auto: update`，并把生成结果导出为 SQL | 与参考项目建表方式一致，同时提供不依赖 Hibernate 的初始化途径 | 无 |
-| 数据库口令、图片目录、CORS 来源改为环境变量 + 本地默认值 | 避免把凭据写进仓库 | 无（默认值即本地开发配置） |
+| 数据库口令、图片目录、CORS 来源改为环境变量 + 本地默认值 | 避免把凭据写进仓库 | 无（默认值即本地开发配置；仓库只含公开的本地演示口令，不含线上凭据） |
 | 补回参考项目中的显式 404（如活动 / 工单 / 设备 / 用户不存在） | 参考实现中有类似分支但存在漏检，统一补齐可让异常情况表现一致 | 见第 6 节「修复清单」 |
 | `RepairController` 中 Spring 的 `Resource` 使用全限定名 | 与 `jakarta.annotation.Resource` 同名冲突会导致编译失败并连带跳过 Lombok 处理 | 无 |
 | 前端浏览器测试改用 `playwright-core` 驱动本机 Chrome | 本机已安装 Chrome，避免下载整套浏览器 | 仅影响测试方式 |
@@ -141,8 +143,8 @@ public interface XxxMapper extends BaseMapper<Xxx> {
 | 项 | 值 |
 | --- | --- |
 | Harness | DeepSeek Harness（DSH）Web GUI，运行于 <http://127.0.0.1:3080> |
-| Harness 具体版本号 | **未确认**（会话中未提供可读取的版本标识） |
-| 模型名称 | `deepseek-flash`（会话中声明为当前代理模型） |
+| Harness 具体版本号 | `0.2.0-rc.2`（已核验） |
+| 模型名称 | `deepseek-flash`（Max 配置） |
 | 会话工作目录 | `/home/tsar413/ai-tools/deepseek-harness/default-workspace` |
 | 成果目录 | `/home/tsar413/projects/Vue-Practise-Class-Projects-DeepSeek` |
 

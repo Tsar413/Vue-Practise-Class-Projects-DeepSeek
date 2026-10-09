@@ -85,30 +85,51 @@ public class SysLoginServiceImpl extends ServiceImpl<SysLoginMapper, SysLoginTok
             return failure(ROLE_INVALID);
         }
 
-        // 5. 查询已有登录记录，准备轮换凭证
-        QueryWrapper<SysLoginToken> wrapper = new QueryWrapper<>();
-        wrapper.eq("user_id", id);
-        SysLoginToken loginToken = baseMapper.selectOne(wrapper);
+        // 5. 串行化同一账号的登录，然后写入或轮换凭证
+        //
+        //    加锁顺序统一为「sys_user → sys_login_token」，与删除账号路径一致；
+        //    顺序不一致会带来交叉等待的风险。
+        //    加锁后重新读取账号状态，避免在等待锁期间账号被停用却仍发出凭证。
+        SysUser lockedUser = baseMapper.selectUserForUpdate(id);
+        if (lockedUser == null) {
+            return failure(BAD_CREDENTIAL);
+        }
+        if (!Integer.valueOf(1).equals(lockedUser.getStatus())) {
+            return failure(USER_DISABLED);
+        }
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expireTime = now.plusDays(1);
         String rawToken = TokenUtil.generateToken();
         String tokenHash = TokenUtil.hashToken(rawToken);
 
-        // 6. 保留已有 API 访问码；仅学生缺失时生成
-        String apiAccessCode = loginToken == null ? null : loginToken.getApiAccessCode();
-        if ("STUDENT".equals(user.getRole()) && (apiAccessCode == null || apiAccessCode.isBlank())) {
+        // 在锁内「加锁读」现有记录：
+        // 1) sys_user 行的排他锁让同一账号的登录串行化；
+        // 2) 加锁读保证能读到其他并发请求刚刚提交的 api_access_code，
+        //    不会因为快照读看到旧值而重复生成访问码。
+        SysLoginToken existing = baseMapper.selectByUserIdForUpdate(id);
+
+        // 学生首次登录时生成长期访问码；已有访问码则传 null 保持不变
+        String apiAccessCode = null;
+        if ("STUDENT".equals(lockedUser.getRole())
+                && (existing == null
+                    || existing.getApiAccessCode() == null
+                    || existing.getApiAccessCode().isBlank())) {
             apiAccessCode = TokenUtil.generateToken();
         }
 
-        // 7. 首次创建或更新已有记录
-        if (loginToken == null) {
-            createLoginToken(id, tokenHash, apiAccessCode, now, expireTime);
-        } else {
-            updateLoginToken(loginToken.getId(), tokenHash, apiAccessCode, now, expireTime);
+        if (baseMapper.upsertToken(id, tokenHash, apiAccessCode, now, expireTime) < 0) {
+            throw new IllegalStateException("写入登录Token失败");
         }
 
-        // 8. 更新最后登录时间
+        // 6. 回读最终生效的长期访问码（以数据库为准，保证返回值与实际存储一致）
+        SysLoginToken saved = baseMapper.selectByUserId(id);
+        if (saved == null) {
+            throw new IllegalStateException("登录Token写入后未查询到记录");
+        }
+        String effectiveApiAccessCode = saved.getApiAccessCode();
+
+        // 7. 更新最后登录时间
         UpdateWrapper<SysUser> userUpdate = new UpdateWrapper<>();
         userUpdate.eq("id", id);
         userUpdate.set("last_login_time", now);
@@ -116,7 +137,7 @@ public class SysLoginServiceImpl extends ServiceImpl<SysLoginMapper, SysLoginTok
             throw new IllegalStateException("更新最后登录时间失败");
         }
 
-        // 9. 返回登录结果，不返回过期时间
+        // 8. 返回登录结果，不返回过期时间
         SysLoginReturnDTO result = new SysLoginReturnDTO();
         result.setStatus(1);
         result.setUserId(id);
@@ -124,7 +145,7 @@ public class SysLoginServiceImpl extends ServiceImpl<SysLoginMapper, SysLoginTok
         result.setRealName(user.getRealName());
         result.setRole(user.getRole());
         if ("STUDENT".equals(user.getRole())) {
-            result.setApiAccessCode(apiAccessCode);
+            result.setApiAccessCode(effectiveApiAccessCode);
         }
         return result;
     }
@@ -185,35 +206,6 @@ public class SysLoginServiceImpl extends ServiceImpl<SysLoginMapper, SysLoginTok
         return MessageDigest.isEqual(
                 calculatedHash.getBytes(StandardCharsets.UTF_8),
                 user.getPasswordHash().getBytes(StandardCharsets.UTF_8));
-    }
-
-    private void createLoginToken(String userId, String tokenHash, String apiAccessCode,
-                                  LocalDateTime now, LocalDateTime expireTime) {
-        SysLoginToken token = new SysLoginToken();
-        token.setUserId(userId);
-        token.setTokenHash(tokenHash);
-        token.setApiAccessCode(apiAccessCode);
-        token.setCreateTime(now);
-        token.setExpireTime(expireTime);
-        token.setRevokeTime(null);
-        if (baseMapper.insert(token) != 1) {
-            throw new IllegalStateException("创建登录Token失败");
-        }
-    }
-
-    private void updateLoginToken(Long tokenId, String tokenHash, String apiAccessCode,
-                                  LocalDateTime now, LocalDateTime expireTime) {
-        UpdateWrapper<SysLoginToken> wrapper = new UpdateWrapper<>();
-        wrapper.eq("id", tokenId);
-        wrapper.set("token_hash", tokenHash);
-        wrapper.set("api_access_code", apiAccessCode);
-        wrapper.set("create_time", now);
-        wrapper.set("expire_time", expireTime);
-        // 显式清空此前的撤销时间
-        wrapper.set("revoke_time", null);
-        if (baseMapper.update(null, wrapper) != 1) {
-            throw new IllegalStateException("更新登录Token失败");
-        }
     }
 
     private SysLoginReturnDTO failure(int status) {

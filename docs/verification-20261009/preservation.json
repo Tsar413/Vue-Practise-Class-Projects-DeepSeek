@@ -1,0 +1,11 @@
+{
+  "original_tables": 15,
+  "changed_tables_after_normal_login": [
+    "sys_login_token",
+    "sys_user"
+  ],
+  "total_rows": 120,
+  "original_image_count": 11,
+  "original_images_identical": true,
+  "other_13_table_checksums_unchanged": true
+}

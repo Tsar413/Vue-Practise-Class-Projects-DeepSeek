@@ -36,18 +36,24 @@ docs/             架构分析、对照表、复现记录与验证结论
 
 ## 快速开始
 
-以下命令在项目根目录执行，全部只操作本机资源。
+已有环境在项目根目录执行，日常启动不重新安装或导入数据：
 
 ```bash
-# 1. 启动 MySQL、后端与前端（可重复执行，已在运行的组件会跳过）
 bash scripts/start-all.sh
+bash scripts/stop-all.sh  # 只停止本项目的前后端，默认保留 MySQL
+```
 
-# 2. 首次使用或需要重置数据时，初始化数据库与演示数据
-#    （新库可加 RESET=1 先删除同名数据库再重建）
-bash scripts/init-db.sh
+本轮虚拟机请使用忽略的 `.runtime/run-local.sh start` / `stop`，加载本机配置。
+**全新环境**先准备依赖与空 MySQL 数据目录、启动 MySQL，再执行 `init-db.sh`；
+完整顺序见 [运行手册](docs/05-environment-and-runbook.md)。已有库或账号会被初始化脚本拒绝，不能重复导入。
 
-# 3. 停止全部组件
-bash scripts/stop-all.sh
+需要写操作回归时使用隔离环境，不要对开发库执行：
+
+```bash
+bash scripts/review-env.sh init
+bash scripts/review-env.sh start          # 隔离后端，端口 18100
+READ_ONLY=1 bash scripts/review-verify.sh # 只读身份核验
+bash scripts/review-env.sh stop
 ```
 
 访问地址：
@@ -89,8 +95,9 @@ bash scripts/stop-all.sh
 ## 验证
 
 ```bash
-# 接口 / 权限 / 数据隔离 / 重置 对照验证（246 项断言）
-bash scripts/api-verify.sh
+# 仅在已核验的独立 18100 测试环境串行执行，包含写入和重置
+API_BASE=http://127.0.0.1:18100 OUT=/tmp/api-result.txt bash scripts/api-verify.sh
+OUT=/tmp/review-result.txt bash scripts/review-verify.sh
 
 # 后端纯逻辑单元测试（口令散列、凭证、富文本清洗）
 cd backend && mvn test
@@ -98,15 +105,15 @@ cd backend && mvn test
 # 前端契约单元测试
 cd frontend && npm test
 
-# 真实浏览器端到端验证（需要本机安装 Google Chrome）
-cd frontend && node tests/browser.mjs
+# 历史浏览器套件包含写入；须先改为独立测试后端和前端配置，禁止直接对现有库执行
+# cd frontend && node tests/browser.mjs
 
 # 生成测试素材（PNG 与 Excel 示例文件）
 node scripts/make-fixtures.mjs
 ```
 
-验证结论保存在 `docs/verification-api.txt`、`docs/verification-browser.txt`，
-截图保存在 `docs/screenshots/`。
+本轮结果见 [最终验收](docs/07-final-acceptance.md) 和 `docs/verification-20261009/`。
+`docs/verification-api.txt`、`docs/verification-browser.txt` 与 `docs/screenshots/` 是原基准的历史证据，不能视为本轮重新执行。
 
 ## 文档
 
@@ -116,12 +123,14 @@ node scripts/make-fixtures.mjs
 | [docs/02-comparison.md](docs/02-comparison.md) | 源代码基准、页面 / 功能 / 接口对照表 |
 | [docs/03-reuse-and-reimplementation.md](docs/03-reuse-and-reimplementation.md) | 复用范围、重新实现范围与关键设计决定 |
 | [docs/04-development-log.md](docs/04-development-log.md) | 分模块复现过程、问题修复与测试结果 |
-| [docs/05-environment-and-runbook.md](docs/05-environment-and-runbook.md) | 环境依赖、初始化、启动停止与运行限制 |
+| [docs/05-environment-and-runbook.md](docs/05-environment-and-runbook.md) | 环境依赖、初始化、启动停止、脚本语义与运行限制 |
+| [docs/07-final-acceptance.md](docs/07-final-acceptance.md) | 本轮最终结果、分工、证据和剩余限制 |
+| [docs/06-review-fixes.md](docs/06-review-fixes.md) | 第二轮审查：问题、修复与验证记录 |
 | [docs/verification-api.txt](docs/verification-api.txt) | API 对照验证逐项结果 |
 | [docs/verification-browser.txt](docs/verification-browser.txt) | 浏览器端到端验证逐项结果 |
 
 ## 说明
 
 - 仓库中不包含任何真实学生姓名、学号或联系方式；演示数据全部为虚构内容。
-- 数据库口令、访问码等敏感信息通过环境变量提供，不写入仓库。
+- 仓库包含公开的本地数据库默认口令和虚构演示账号口令；真实凭据、API Key、Token、长期访问码及私钥不得写入仓库。本机配置保存在忽略文件中。
 - 本轮只复现参考项目已有功能；任务发布、成果提交、自动评分与 AI 辅导留待下一阶段。

@@ -1,166 +1,116 @@
-# 环境依赖、初始化、启动停止与运行限制
+# 环境准备、日常运行与隔离验证
 
-## 1. 实际使用的环境与版本
+本页是 2026-10-09 审查后的运行说明，由 Codex 根据 Harness 修改和实际验收更新。
+业务设计、接口及代码来源见 `03-reuse-and-reimplementation.md`；本轮分工和证据见 `07-final-acceptance.md`。
 
-验证时的实际版本（命令输出）：
+## 已有环境再次启动
 
-| 组件 | 版本 | 验证命令 |
-| --- | --- | --- |
-| 操作系统 | Ubuntu 24.04.4 LTS（x86_64） | `lsb_release -a` |
-| 内核 | 见 `uname -r` | — |
-| Java | Temurin OpenJDK 21.0.12.1+1 LTS | `java -version` |
-| Maven | Apache Maven 3.9.16 | `mvn -v` |
-| MySQL | 8.0.44（linux-glibc2.17-x86_64） | `mysql --version` / `SELECT VERSION()` |
-| Node.js | v24.14.0 | `node -v` |
-| npm | 11.9.0 | `npm -v` |
-| 浏览器 | Google Chrome（本机已安装，`/opt/google/chrome/chrome`） | — |
-| playwright-core | 1.64.0（仅测试时临时安装） | `npm ls playwright-core` |
+当前虚拟机已有 JDK、Maven、MySQL 程序、初始化的数据目录和项目依赖。
+安装压缩包或 npm 缓存缺失不影响已安装程序，不应重新下载或重新初始化。
+已有数据库禁止重复导入 SQL、清空或重建。
 
-虚拟机内存约 3.8 GB，可用约 1.3 GB，磁盘剩余约 1.8 GB。
-这些限制影响了浏览器验证方式（详见第 7 节）。
-
-## 2. 依赖位置
-
-所有组件解压在用户目录下，不覆盖系统或其他项目的配置：
-
-```
-~/tools/opt/jdk-21.0.12.1+1/                       JDK 21
-~/tools/opt/apache-maven-3.9.16/                   Maven
-~/tools/opt/mysql-8.0.44-linux-glibc2.17-x86_64/   MySQL
-~/tools/opt/lib/                                   额外动态库（libaio.so.1、libncurses.so.5 兼容链接）
-~/var/mysql/                                       MySQL 数据目录、socket、日志
-~/var/run/                                         后端与前端后台进程日志
-```
-
-`scripts/start-all.sh`、`scripts/stop-all.sh`、`scripts/init-db.sh` 支持用环境变量覆盖这些路径：
-
-| 变量 | 作用 | 默认值 |
-| --- | --- | --- |
-| `MYSQL_HOME` | MySQL 安装目录 | `$HOME/tools/opt/mysql-8.0.44-linux-glibc2.17-x86_64` |
-| `JAVA_HOME` | JDK 安装目录 | `$HOME/tools/opt/jdk-21.0.12.1+1` |
-| `MAVEN_HOME` | Maven 安装目录 | `$HOME/tools/opt/apache-maven-3.9.16` |
-| `EXTRA_LIB` | 额外动态库目录 | `$HOME/tools/opt/lib` |
-| `RUN_DIR` | 运行期数据根目录 | `$HOME/var` |
-| `DB_SOCKET` | MySQL socket 路径 | `$RUN_DIR/mysql/db.sock` |
-| `DB_NAME` | 数据库名 | `vue_practise_backend` |
-| `DB_USERNAME` / `DB_PASSWORD` | 应用账号与口令 | `vue_practice` / `vue_practice_local` |
-
-## 3. 数据库初始化
-
-```bash
-# 首次初始化（创建库、表、应用账号、演示数据）
-bash scripts/init-db.sh
-
-# 需要清空重来时先删除同名库
-RESET=1 bash scripts/init-db.sh
-```
-
-脚本行为：
-
-1. 执行 `db/01-schema.sql` 创建数据库与 15 张表（可重复执行）。
-2. 创建只能访问本库的本机应用账号（默认 `vue_practice@127.0.0.1`）。
-3. 执行 `db/02-seed-demo-data.sql` 导入虚构演示数据（可重复执行）。
-
-**安全说明**：脚本只连接本机 MySQL（通过 socket 或 `127.0.0.1`），
-不会连接、也不会修改任何线上数据库。
-
-演示数据（全部虚构，无真实学生信息）：
-
-| 类型 | 编号 | 姓名 |
-| --- | --- | --- |
-| 班级 | `DEMO2026` | Vue 实训示范班 |
-| 教师 | `DEMO_TEACHER` | 示范教师 |
-| 学生 | `DEMO2026001` / `DEMO2026002` / `DEMO2026003` | 学生甲 / 学生乙 / 学生丙 |
-
-口令统一为 `123456`；登录后由系统生成网页登录 Token 与学生长期访问码。
-抢票与报修的基准数据需要教师登录后，在「工作空间」页按班级执行
-「按班级初始化」，或调用：
-
-```
-POST /api/sys-workspace/classes/DEMO2026/ticket/initialize
-POST /api/sys-workspace/classes/DEMO2026/repair/initialize
-```
-
-## 4. 启动与停止
-
-### 4.1 启动
+在项目根目录执行：
 
 ```bash
 bash scripts/start-all.sh
-```
-
-按顺序启动 MySQL → 后端（8100）→ 前端（5173）。
-已在运行的组件会被跳过，因此可以重复执行。
-
-### 4.2 访问地址
-
-| 用途 | 地址 |
-| --- | --- |
-| 前端页面 | <http://127.0.0.1:5173> |
-| 后端服务 | <http://127.0.0.1:8100> |
-| 后端连通检查 | <http://127.0.0.1:8100/hello> |
-| 前端预览（构建产物） | <http://127.0.0.1:4173>（执行 `npm run preview`） |
-
-### 4.3 停止
-
-```bash
 bash scripts/stop-all.sh
 ```
 
-按前端 → 后端 → MySQL 的顺序停止，并等待后端端口释放。
+启动顺序为 MySQL、后端 8100、前端 5173。脚本检查应用数据库连接、进程身份和 HTTP 就绪状态；
+超时或配置错误返回非零。重复启动核对原 PID、启动时间、进程组及响应。
+并发启动/停止使用同一把锁，竞争者返回 4；应等前一次执行结束后再重试。
+停止脚本仅处理本运行目录记录的前后端进程组，默认保留共享 MySQL。
+没有记录或身份不符的服务不会被接管；不要使用通用 `pkill` 清理。
 
-### 4.4 日志
+本虚拟机另有 Codex 创建的本地忽略包装脚本，加载当前网卡 CORS 设置和结构只读验证配置：
 
-| 文件 | 内容 |
+```bash
+cd /home/tsar413/projects/Vue-Practise-Class-Projects-DeepSeek
+bash .runtime/run-local.sh start
+bash .runtime/run-local.sh stop
+```
+
+`.runtime/run-local.sh`、`.runtime/local.env` 和 `frontend/.env.local` 不进入 Git。
+
+## 版本与目录
+
+| 组件 | 已核验版本 / 目录 |
 | --- | --- |
-| `~/var/run/backend.log` | 后端 Spring Boot 日志 |
-| `~/var/run/frontend.log` | 前端 Vite 日志 |
-| `~/var/mysql/log/error.log` | MySQL 错误日志 |
+| 系统 | Ubuntu 24.04.4 LTS / Linux 7.0.0-31-generic / x86_64 |
+| Node / npm / Git | 24.14.0 / 11.9.0 / 2.43.0 |
+| JDK | 21.0.12.1+1，`~/tools/opt/jdk-21.0.12.1+1` |
+| Maven | 3.9.16，`~/tools/opt/apache-maven-3.9.16` |
+| MySQL | 8.0.44，`~/tools/opt/mysql-8.0.44-linux-glibc2.17-x86_64` |
+| 兼容动态库 | `~/tools/opt/lib`，由脚本设置 `LD_LIBRARY_PATH` |
+| MySQL 数据 / socket | `~/var/mysql/data` / `~/var/mysql/db.sock` |
+| MySQL 日志 | `~/var/mysql/log/error.log` |
+| 正常应用运行记录 / 日志 | `.runtime/run/env.state` / `.runtime/run/backend.log`、`frontend.log` |
+| 正常图片 | `backend/repair-files`（后端默认工作目录为 `backend`） |
+| Harness | `~/ai-tools/deepseek-harness`，0.2.0-rc.2，沿用 deepseek-flash / Max |
 
-## 5. 从宿主机访问
+本轮未重新安装上述环境或更换项目依赖。磁盘扩容后实测可用约 23 GB。
+虚拟机内存约 3.8 GiB，同时运行两个后端和浏览器会产生交换压力，隔离测试与正常验收宜串行执行。
 
-后端与前端默认监听 `0.0.0.0`（Vite 使用 `--host 0.0.0.0`），
-因此在 VMware 宿主机上可以访问：
+## 全新环境首次准备
 
-1. 先获取虚拟机 IP：`hostname -I`（当前环境中为 `192.168.247.128` 或 `192.168.17.128`）。
-2. 在宿主机浏览器打开 `http://<虚拟机IP>:5173`。
-3. 前端通过 `VITE_API_BASE_URL` 访问后端；若从宿主机访问，
-   需要把 `frontend/.env.local` 改为 `http://<虚拟机IP>:8100`，
-   并把该地址加入后端 `APP_CORS_ALLOWED_ORIGINS`。
+本节只适用于没有数据的新环境，本轮没有对原 MySQL 数据目录执行这些步骤。
 
-**本轮没有开放任何公网端口**，只做本机与宿主机访问。
+1. 准备与上表兼容的 Java、Maven、Node 和 MySQL，设置 `JAVA_HOME`、`MAVEN_HOME`、`MYSQL_HOME`；
+   项目默认使用上述用户目录。前端缺少依赖时在 `frontend` 执行 `npm ci`，后端在 `backend` 执行 `mvn -DskipTests package`。
+2. **仅对全新、空的数据目录**初始化 MySQL。已有 `auto.cnf` 或任何数据文件时必须停止此步骤：
 
-## 6. 公开前检查结果
+```bash
+export MYSQL_HOME="$HOME/tools/opt/mysql-8.0.44-linux-glibc2.17-x86_64"
+export LD_LIBRARY_PATH="$HOME/tools/opt/lib:${LD_LIBRARY_PATH:-}"
+mkdir -p "$HOME/var/mysql/data" "$HOME/var/mysql/log" "$HOME/var/mysql/tmp"
+test -z "$(find "$HOME/var/mysql/data" -mindepth 1 -print -quit)" || exit 1
+"$MYSQL_HOME/bin/mysqld" --no-defaults --initialize-insecure \
+  --basedir="$MYSQL_HOME" --datadir="$HOME/var/mysql/data"
+START_BACKEND=0 START_FRONTEND=0 bash scripts/start-all.sh
+bash scripts/init-db.sh
+```
 
-| 检查项 | 方法 | 结果 |
-| --- | --- | --- |
-| 数据库口令 | 全量扫描 `password`、`passwd`、`secret` 等关键词 | 仅在 `application.yml` 中出现环境变量默认值 `vue_practice_local`（本地测试口令），不含任何线上凭据 |
-| API Key / Token / 私钥 | 扫描 `apikey`、`token`、`PRIVATE KEY`、`BEGIN RSA` | 无。代码中的 token 均为运行期随机生成，无硬编码值 |
-| 真实学生个人信息 | 扫描演示数据与文档中的姓名、学号、手机号 | 演示数据全部为虚构编号（`DEMO*`、`IMPORT*`）与占位姓名（学生甲/乙/丙）；手机号统一为 `138000000xx` 示例号段 |
-| 数据库备份与日志 | 检查是否存在 `.sql` 备份、`*.log` | `db/` 下只有建表与演示数据脚本；日志目录已在 `.gitignore` 中排除 |
-| 截图敏感内容 | 逐张检查 `docs/screenshots/` | 截图中出现的访问码位置已用 Playwright 的 `mask` 遮蔽为占位色块，不包含任何运行期凭证；其余内容均为虚构演示数据 |
-| 本地配置 | 检查 `.env.local` 等 | 已在 `.gitignore` 中排除，仓库只提交 `.env.example` |
-| 依赖目录与构建产物 | 检查 `node_modules`、`dist`、`target` | 均已在 `.gitignore` 中排除 |
-| 目标仓库地址 | `git remote -v` | 只指向 `Tsar413/Vue-Practise-Class-Projects-DeepSeek`，不包含源仓库的推送地址 |
+这里是回环绑定的本地教学环境初始化流程；脚本使用本机 socket 上已有的 root 认证。
+`init-db.sh` 只新建：库或账号已存在就拒绝，既不修改原账号口令，也不覆盖种子数据；没有 RESET/drop 入口。
+自定义库例如 `DB_NAME=class_demo_v1 bash scripts/init-db.sh`，日常启动也应使用相同 `DB_NAME`；
+建库、表、授权、种子和后端连接保持一致。指定 `DB_URL` 时须与显式 `DB_NAME` 一致且只连接本机。
+默认应用口令和演示账号口令是仓库公开的本地演示值，不能把本仓库表述为“无口令”。
+自定义口令通过环境变量或忽略文件提供，避免进入命令日志和版本库。
 
-## 7. 运行限制与已知问题
+3. 复制 `frontend/.env.example` 为忽略文件 `.env.local`，配置完整的 `VITE_API_BASE_URL`，再正常启动。
+4. 全新库的虚构账号由 SQL 创建；教师按班级初始化两个项目的数据。已有环境的日常启动不执行此操作。
 
-1. **内存受限影响浏览器验证**：虚拟机可用内存约 1.3 GB，
-   Chrome 在执行「整页截图」或「页面重载」时偶发渲染进程崩溃。
-   处理方式：收敛 Chrome 启动参数、截图改为尽力而为、用新开页面替代整页刷新。
-   功能断言全部通过，`docs/screenshots/reset-cooldown.png` 因该限制缺失，
-   不影响结论。
-2. **MySQL 依赖额外动态库**：Ubuntu 24.04 只有 `libaio.so.1t64`，
-   而 MySQL 二进制链接 `libaio.so.1`。
-   已通过 `~/tools/opt/lib/libaio.so.1` 符号链接解决，
-   `scripts/start-all.sh` 会自动把该目录加入 `LD_LIBRARY_PATH`。
-3. **未做并发压测**：抢票与报修的并发策略通过「工作空间行锁 + 固定加锁顺序」实现，
-   只做了代码审查，没有做压力测试。
-4. **图片异步清理未逐文件断言**：重置时通过任务表登记待删文件，
-   后台每 30 秒清理一次；验证只覆盖了数据库记录清空，没有断言磁盘文件已删除。
-5. **未做生产部署**：本轮只做本机联调，没有配置反向代理、HTTPS、
-   进程守护与生产数据库；`ddl-auto: update` 与默认口令均只适合本地开发。
-6. **`repair-files/` 为运行期目录**：图片按 `{workspaceId}/{yyyyMM}/{uuid}.{ext}` 落盘，
-   已在 `.gitignore` 中排除。
-7. **前端构建告警**：`Docs.vue` 打包后约 410 KB（含全部接口文档数据），
-   属于文档数据的固有体积；已按路由拆分为独立 chunk，不影响首页加载。
+## 只在隔离环境运行写测试
+
+正常数据库不得用于全量接口测试或浏览器写入测试。历史 `frontend/tests/browser.mjs` 包含写操作，
+不可直接对 8100 执行；本轮正常浏览器验收仅做登录、退出和查询。
+
+```bash
+bash scripts/review-env.sh init
+bash scripts/review-env.sh start
+READ_ONLY=1 bash scripts/review-verify.sh
+OUT=/tmp/review-result.txt bash scripts/review-verify.sh
+API_BASE=http://127.0.0.1:18100 OUT=/tmp/api-result.txt bash scripts/api-verify.sh
+bash scripts/review-env.sh stop
+```
+
+隔离库 `vue_practise_review_20261009`、独立用户、`.runtime/review-20261009/run`、
+`.runtime/review-20261009/repair-files` 和回环端口 18100 与正常环境分开。
+写测试前统一核对 `/proc` 中实际后端连接、图片目录和记录进程组，失败立即退出。
+`READ_ONLY=1` 不登录、不写入。包含凭证的临时响应只进入私有目录，并在退出时删除。
+不要并发运行测试套件：同一账号再次登录会轮换网页 Token，导致另一套测试的旧凭证失效。
+已有测试库可能包含上轮夹具变化，完整套件需要在该**独立测试库**中准备相应基准状态。
+
+## 访问与限制
+
+虚拟机浏览器访问 `http://127.0.0.1:5173`，后端检查 `http://127.0.0.1:8100/hello`。
+宿主机浏览器使用 `http://<虚拟机当前IP>:5173`；在虚拟机执行 `hostname -I` 获取地址。
+前端本地配置 `VITE_API_BASE_URL=http://<虚拟机IP>:8100`；后端 CORS 加入**前端来源**
+`http://<虚拟机IP>:5173`，并保留 localhost / 127.0.0.1 的 5173、4173 来源。
+有代理时检查现有免代理列表，保证访问虚拟机自己的地址不会被转发；不要猜代理地址。
+本轮只在虚拟机内部操作；没有操作宿主机、改变防火墙或开放公网。
+
+五分钟重置冷却由前端本地状态实现，**不是后端限流**，本轮没有改变规则。
+角色、workspace、跨学生访问和重置范围由后端校验；图片删除任务与业务事务同时提交，
+后台每 30 秒处理任务。磁盘删除和事务回滚已有实际验证，见最终验收记录。
+抢票/报修高负载压测、生产部署及宿主机真实浏览器连通性仍未验证。

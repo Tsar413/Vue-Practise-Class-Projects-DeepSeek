@@ -1,0 +1,11 @@
+[
+  {
+    "test": "mismatched recorded PGID refuses to stop owned frontend",
+    "passed": true,
+    "exit_code": 1
+  },
+  {
+    "test": "valid state stops frontend group and releases port",
+    "passed": true
+  }
+]

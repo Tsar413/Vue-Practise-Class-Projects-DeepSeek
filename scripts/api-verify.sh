@@ -14,14 +14,19 @@
 #   后端已启动；数据库已执行 db/01-schema.sql 与 db/02-seed-demo-data.sql。
 #   班级与学生的基准数据由本脚本自动初始化。
 #
-# 用法：
-#   API_BASE=http://127.0.0.1:8100 bash scripts/api-verify.sh
+# 用法（写操作，只允许对隔离环境执行）：
+#   API_BASE=http://127.0.0.1:18100 OUT=/tmp/api-verify-review.txt bash scripts/api-verify.sh
+#
+# 安全说明：
+#   * 脚本对端口 8100（常规开发端口）直接拒绝执行，因为本套件包含重置与删除操作。
+#   * 报告默认写入 docs/verification-api.txt；覆盖前会保留一份 .prev 历史副本，
+#     可用 OUT 指定项目外的路径，避免冲掉既有结论。
 # ---------------------------------------------------------------------------
 set -uo pipefail
 
-API="${API_BASE:-http://127.0.0.1:8100}"
+API="${API_BASE:-http://127.0.0.1:18100}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/docs/verification-api.txt"
+OUT="${OUT:-$ROOT/docs/verification-api.txt}"
 CLASS="${VERIFY_CLASS:-DEMO2026}"
 STUDENT_A="${VERIFY_STUDENT_A:-DEMO2026001}"
 STUDENT_B="${VERIFY_STUDENT_B:-DEMO2026002}"
@@ -45,10 +50,10 @@ check() { if [ "$2" = "$3" ]; then ok "$1"; else bad "$1" "期望 [$2] 实际 [$
 # 响应体存入 AV_BODY，状态码存入 AV_CODE；两者分开保存，JSON 不会被按行截断。
 rest() {
   local method="$1" path="$2" token="${3:-}" data="${4:-}"
-  AV_CODE=$(curl -sS -o /tmp/av.body -w '%{http_code}' "$API$path" -X "$method" \
+  AV_CODE=$(curl -sS -o "$TMPDIR_PRIVATE/body" -w '%{http_code}' "$API$path" -X "$method" \
     ${token:+-H "Authorization: Bearer $token"} \
     ${data:+-H 'Content-Type: application/json' -d "$data"})
-  AV_BODY=$(cat /tmp/av.body)
+  AV_BODY=$(cat "$TMPDIR_PRIVATE/body")
 }
 
 http() { rest "$@"; printf '%s\n%s\n' "$AV_BODY" "$AV_CODE"; }
@@ -169,7 +174,11 @@ for a in d:
 echo "=============================================================="
 echo "API 对照验证  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "后端地址：$API    班级：$CLASS"
-echo "=============================================================="
+# Codex 最终复核：统一核验本机监听者、真实库、图片目录及运行记录。
+API_BASE="$API" python3 "$ROOT/scripts/verify-review-target.py" || exit 3
+umask 077
+TMPDIR_PRIVATE=$(mktemp -d)
+trap 'rm -rf "$TMPDIR_PRIVATE"' EXIT
 
 # ---------------------- 0. 准备基准数据 ----------------------
 echo
@@ -216,7 +225,7 @@ check "学生正确口令登录返回200" "200" "$(code_of "$r")"
 check "学生登录返回角色 STUDENT" "STUDENT" "$(body_of "$r" | jq_get data.role)"
 check "学生登录返回64位访问码" "64" \
   "$(printf '%s' "$(body_of "$r" | jq_get data.apiAccessCode)" | wc -c | tr -d ' ')"
-check "重复登录后访问码保持不变" "$S1CODE" "$(body_of "$r" | jq_get data.apiAccessCode)"
+check "重复登录后访问码保持不变" "true" "$([ "$S1CODE" = "$(body_of "$r" | jq_get data.apiAccessCode)" ] && echo true || echo false)"
 NEW_TOKEN=$(body_of "$r" | jq_get data.token)
 check "再次登录后网页Token已轮换" "rotated" \
   "$([ "$S1TOKEN" != "$NEW_TOKEN" ] && echo rotated || echo same)"
@@ -630,7 +639,7 @@ if [ -f "$FIXTURE" ]; then
     r=$(http GET "/api/practice/$S1CODE/repair/images/$FAULT_IMG/preview" '')
     check "图片预览返回200" "200" "$(code_of "$r")"
     check "预览返回真实图片内容" "ok" \
-      "$(head -c 4 /tmp/av.body | od -An -tx1 | tr -d ' \n' | grep -qiE '89504e47|ffd8ff' && echo ok || echo 非图片)"
+      "$(head -c 4 "$TMPDIR_PRIVATE/body" | od -An -tx1 | tr -d ' \n' | grep -qiE '89504e47|ffd8ff' && echo ok || echo 非图片)"
     r=$(http GET "/api/practice/$S1CODE/repair/images/$FAULT_IMG/download" '')
     check "图片下载返回200" "200" "$(code_of "$r")"
     r=$(http GET "/api/practice/$S2CODE/repair/images/$FAULT_IMG/preview" '')
@@ -995,7 +1004,7 @@ if [ -f "$XLSX" ]; then
     -F "file=@$ROOT/scripts/api-verify.sh" | jq_get message)
   check "非 Excel 文件被拒绝" "仅支持.xls或.xlsx文件" "$IMPORT_ERR"
 
-  IMPORT_DENIED=$(curl -sS -o /tmp/av.body -w '%{http_code}' -X POST "$API/api/sys-user/import" \
+  IMPORT_DENIED=$(curl -sS -o "$TMPDIR_PRIVATE/body" -w '%{http_code}' -X POST "$API/api/sys-user/import" \
     -H "Authorization: Bearer $S1TOKEN" -F "file=@$XLSX")
   check "学生调用导入接口返回403" "403" "$IMPORT_DENIED"
 else
@@ -1006,6 +1015,11 @@ echo
 echo "=============================================================="
 printf '通过 %d 项，失败 %d 项\n' "$PASS" "$FAIL"
 echo "=============================================================="
+
+# 覆盖报告前先留一份历史副本，避免旧结论被静默冲掉
+if [ -f "$OUT" ]; then
+  cp "$OUT" "$OUT.prev" 2>/dev/null || true
+fi
 
 {
   echo "API 对照验证结果"
