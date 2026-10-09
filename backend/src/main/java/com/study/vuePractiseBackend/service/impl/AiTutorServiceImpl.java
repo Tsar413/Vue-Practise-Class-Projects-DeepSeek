@@ -176,6 +176,9 @@ public class AiTutorServiceImpl implements AiTutorService {
     @Resource
     private ObjectMapper objectMapper;
 
+    @Resource
+    private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
     /** 每名学生一个并发许可；键数量受学生总数限制，不做淘汰以避免并发上限被绕过。 */
     private final ConcurrentHashMap<String, Semaphore> studentGates = new ConcurrentHashMap<>();
 
@@ -226,7 +229,9 @@ public class AiTutorServiceImpl implements AiTutorService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void deleteConversation(String studentId, Long conversationId) {
         requireStudentId(studentId);
-        AiTutorConversation conversation = requireConversation(studentId, conversationId, true);
+        // 先取行锁再判断：与「写 USER 消息」「写 ASSISTANT 消息」两个短事务真正互斥，
+        // 因此删除返回之后不会再插入新消息（此前是 select 后写，存在 TOCTOU 窗口）。
+        AiTutorConversation conversation = requireConversationForUpdate(studentId, conversationId, true);
         if (Integer.valueOf(AiTutorConversation.STATUS_DELETED).equals(conversation.getStatus())) {
             // 重复删除按成功处理，避免前端重试直接报错
             return;
@@ -338,11 +343,16 @@ public class AiTutorServiceImpl implements AiTutorService {
         List<AiTutorMessage> history = loadHistory(conversation);
         boolean firstMessage = conversation.getMessageCount() == null || conversation.getMessageCount() == 0;
 
-        // ⑥ 短事务：写已脱敏的 USER 消息并刷新计数
-        requireAlive(conversation);
-        saveMessage(conversation, AiTutorMessage.ROLE_USER,
-                composeUserContent(safeQuestion, safeCode, safeError, bundle.contextText()), null);
-        refreshConversation(conversation, firstMessage ? autoTitle(safeQuestion) : null);
+        // ⑥ 短事务：取会话行锁 → 锁内当前读校验归属与状态 → 写已脱敏的 USER 消息 → 刷新计数。
+        //    与删除会话在同一行锁上互斥；此处不含任何外部 HTTP 调用。
+        inShortTransaction(() -> {
+            AiTutorConversation locked = requireConversationForUpdate(
+                    conversation.getStudentId(), conversation.getId(), false);
+            saveMessage(locked, AiTutorMessage.ROLE_USER,
+                    composeUserContent(safeQuestion, safeCode, safeError, bundle.contextText()), null);
+            refreshConversation(locked, firstMessage ? autoTitle(safeQuestion) : null);
+            return null;
+        });
 
         if (!isModelConfigured()) {
             // 未配置：不调用模型、不生成任何模拟答案、不写 ASSISTANT 消息；学生提问照常保存
@@ -358,10 +368,18 @@ public class AiTutorServiceImpl implements AiTutorService {
         // ⑦ 外部调用：此处不持有任何数据库事务
         String content = AiTutorSanitizer.sanitize(callModel(messages), properties.getMaxOutputChars());
 
-        // ⑧ 落回答前再次确认会话仍在（学生可能刚刚删除），避免给已删除会话写消息或复活它
-        requireAlive(conversation);
-        AiTutorMessage assistant = saveMessage(conversation, AiTutorMessage.ROLE_ASSISTANT, content, bundle.refs());
-        refreshConversation(conversation, null);
+        // ⑧ 落回答：再次进入短事务，取会话行锁后在锁内当前读校验归属与状态，再写 ASSISTANT 并刷新计数。
+        //    这样「删除已返回」与「消息已提交」不可能交错：
+        //      * 删除先拿到锁 → 本事务锁内读到的状态为已删除 → 抛 404，不写消息；
+        //      * 本事务先拿到锁 → 删除等待本事务提交，删除返回后不再有新增消息。
+        //    单纯再 select 一次无法做到这一点（上次实现即因此出现 TOCTOU）。
+        AiTutorMessage assistant = inShortTransaction(() -> {
+            AiTutorConversation locked = requireConversationForUpdate(
+                    conversation.getStudentId(), conversation.getId(), false);
+            AiTutorMessage saved = saveMessage(locked, AiTutorMessage.ROLE_ASSISTANT, content, bundle.refs());
+            refreshConversation(locked, null);
+            return saved;
+        });
 
         AiTutorAnswerVO answer = new AiTutorAnswerVO();
         answer.setConversationId(conversation.getId());
@@ -948,9 +966,39 @@ public class AiTutorServiceImpl implements AiTutorService {
         return conversation;
     }
 
-    /** 写消息前后重新确认会话仍属于本人且未被软删，与删除操作形成互斥。 */
-    private void requireAlive(AiTutorConversation conversation) {
-        requireConversation(conversation.getStudentId(), conversation.getId(), false);
+    /**
+     * 取会话行锁并在锁内校验归属与状态（当前读）。
+     * 必须在事务中调用；includeDeleted=false 时已删除会话抛 404。
+     */
+    private AiTutorConversation requireConversationForUpdate(String studentId, Long conversationId,
+                                                             boolean includeDeleted) {
+        if (conversationId == null || conversationId <= 0) {
+            throw new IllegalArgumentException("会话ID必须为正整数");
+        }
+        AiTutorConversation conversation = conversationMapper.selectByIdForUpdate(conversationId);
+        if (conversation == null || !studentId.equals(conversation.getStudentId())) {
+            throw notFound("辅导会话不存在");
+        }
+        if (!includeDeleted
+                && !Integer.valueOf(AiTutorConversation.STATUS_NORMAL).equals(conversation.getStatus())) {
+            throw notFound("辅导会话已删除");
+        }
+        return conversation;
+    }
+
+    /**
+     * 显式短事务（REQUIRES_NEW + READ_COMMITTED）。
+     * 用 TransactionTemplate 而不是注解：同类内部 this 调用不经过 Spring 代理，注解不会生效。
+     * 只包裹数据库读写，绝不包含外部模型 HTTP 调用。
+     */
+    private <T> T inShortTransaction(java.util.function.Supplier<T> action) {
+        org.springframework.transaction.support.TransactionTemplate template =
+                new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        template.setIsolationLevel(
+                org.springframework.transaction.TransactionDefinition.ISOLATION_READ_COMMITTED);
+        return template.execute(status -> action.get());
     }
 
     private AiTutorConversationVO toConversationVO(AiTutorConversation conversation) {

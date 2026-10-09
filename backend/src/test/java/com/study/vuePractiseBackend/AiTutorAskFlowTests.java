@@ -132,6 +132,8 @@ class AiTutorAskFlowTests {
         conversation = conversation();
 
         when(conversationMapper.selectOne(any())).thenReturn(conversation);
+        when(conversationMapper.selectByIdForUpdate(any())).thenAnswer(invocation ->
+                conversationMapper.selectOne(null));
         when(conversationMapper.selectCount(any())).thenReturn(0L);
         when(conversationMapper.update(any(), any())).thenReturn(1);
         when(conversationMapper.insert(any(AiTutorConversation.class))).thenAnswer(invocation -> {
@@ -146,6 +148,14 @@ class AiTutorAskFlowTests {
         service = new AiTutorServiceImpl();
         ReflectionTestUtils.setField(service, "conversationMapper", conversationMapper);
         ReflectionTestUtils.setField(service, "messageMapper", messageMapper);
+        // Mock-only protocol tests need the newly introduced transaction collaborator.
+        // Actual commit/rollback and row-lock semantics are covered by tests/integration
+        // against guarded MySQL, not claimed by this mock.
+        org.springframework.transaction.PlatformTransactionManager tx =
+                mock(org.springframework.transaction.PlatformTransactionManager.class);
+        when(tx.getTransaction(any())).thenAnswer(invocation ->
+                new org.springframework.transaction.support.SimpleTransactionStatus());
+        ReflectionTestUtils.setField(service, "transactionManager", tx);
         ReflectionTestUtils.setField(service, "sysUserMapper", mock(SysUserMapper.class));
         ReflectionTestUtils.setField(service, "teachingTaskService", mock(TeachingTaskService.class));
         ReflectionTestUtils.setField(service, "properties", properties);

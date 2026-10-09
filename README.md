@@ -137,3 +137,5 @@ node scripts/make-fixtures.mjs
 - 本轮只复现参考项目已有功能；任务发布、成果提交、自动评分与 AI 辅导留待下一阶段。
 
 - [教学流程与 AI 辅导最终验收](docs/09-teaching-acceptance.md)
+
+本轮独立边界测试与修复：[验收报告](docs/10-boundary-test-report.md) · [重复运行测试](tests/integration/README.md)。

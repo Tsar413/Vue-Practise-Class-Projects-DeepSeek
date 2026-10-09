@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.time.format.DateTimeParseException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -53,8 +54,16 @@ import java.util.stream.Collectors;
 @Service
 public class TeachingTaskServiceImpl implements TeachingTaskService {
 
-    private static final DateTimeFormatter TIME_FORMAT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    /**
+     * 严格时间格式：yyyy-MM-dd HH:mm:ss。
+     *
+     * 必须使用 STRICT 解析并固定四位年等字段宽度：
+     * 默认的 SMART 解析会把 2030-02-30 这类不存在的日期「智能纠正」为 2 月末，
+     * 从而接受非法输入；STRICT 会直接抛出异常，转成 400。
+     */
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter
+            .ofPattern("uuuu-MM-dd HH:mm:ss")
+            .withResolverStyle(ResolverStyle.STRICT);
     private static final int MAX_TITLE = 200;
     private static final int MAX_TEXT = 20000;
     private static final int MAX_URL = 500;
@@ -677,9 +686,11 @@ public class TeachingTaskServiceImpl implements TeachingTaskService {
             throw BusinessExceptions.badRequest(field + "不能为空");
         }
         try {
+            // 严格解析：不存在的日期（如 2030-02-30）会在这里被拒绝
             return LocalDateTime.parse(value.trim(), TIME_FORMAT);
         } catch (DateTimeParseException e) {
-            throw BusinessExceptions.badRequest(field + "格式应为 yyyy-MM-dd HH:mm:ss");
+            throw BusinessExceptions.badRequest(
+                    field + "必须是真实存在的日期，格式为 yyyy-MM-dd HH:mm:ss");
         }
     }
 

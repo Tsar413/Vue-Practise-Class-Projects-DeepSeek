@@ -581,13 +581,14 @@ public class TeachingSubmissionServiceImpl implements TeachingSubmissionService 
         List<SubmissionSectionDTO> sections = normalizeSections(dto.getSections());
         AttachmentPlan plan = loadReusableAttachments(student, submission.getTaskId(), sections);
 
-        // 草稿字段完整持久化，刷新或重新登录后可恢复
-        submission.setDraftProjectUrl(
-                TeachingTaskServiceImpl.requireHttpUrl(dto.getProjectUrl(), "成果链接", false));
-        submission.setDraftContent(optionalText(dto.getContent(), "完成说明", MAX_CONTENT));
-        submission.setDraftProcess(optionalText(dto.getProcess(), "问题与解决过程", MAX_CONTENT));
-        submission.setDraftUpdateTime(now);
-        submission.setUpdateTime(now);
+        // 草稿字段完整持久化，刷新或重新登录后可恢复。
+        // 注意：必须用 UpdateWrapper 显式 set 每一列——MyBatis-Plus 默认 NOT_NULL 策略会忽略
+        // 实体里的 null，用 updateById 会导致「用户清空字段后旧值仍在」。
+        // 这里只写草稿四列 + update_time，不触碰 status / version_no / late / 归属等字段。
+        String draftProjectUrl =
+                TeachingTaskServiceImpl.requireHttpUrl(dto.getProjectUrl(), "成果链接", false);
+        String draftContent = optionalText(dto.getContent(), "完成说明", MAX_CONTENT);
+        String draftProcess = optionalText(dto.getProcess(), "问题与解决过程", MAX_CONTENT);
 
         // 草稿章节软删除（保留行，历史截图的引用记录不丢）
         List<TeachingSubmissionSection> oldDrafts = sectionMapper.selectList(
@@ -640,9 +641,22 @@ public class TeachingSubmissionServiceImpl implements TeachingSubmissionService 
             attachment.setUpdateTime(now);
             attachmentMapper.updateById(attachment);
         }
-        if (submissionMapper.updateById(submission) != 1) {
+        if (submissionMapper.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<TeachingSubmission>()
+                        .eq("id", submission.getId())
+                        .set("draft_project_url", draftProjectUrl)
+                        .set("draft_content", draftContent)
+                        .set("draft_process", draftProcess)
+                        .set("draft_update_time", now)
+                        .set("update_time", now)) != 1) {
             throw new IllegalStateException("保存草稿失败");
         }
+        // 让调用方 buildVO 时看到本次保存后的值（避免返回旧草稿）
+        submission.setDraftProjectUrl(draftProjectUrl);
+        submission.setDraftContent(draftContent);
+        submission.setDraftProcess(draftProcess);
+        submission.setDraftUpdateTime(now);
+        submission.setUpdateTime(now);
     }
 
     private void clearDraft(TeachingSubmission submission, LocalDateTime now) {
