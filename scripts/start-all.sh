@@ -443,7 +443,12 @@ else
   fi
   cd "$ROOT/frontend" || fail "无法进入 $ROOT/frontend"
   [ -f .env.local ] || cp .env.example .env.local
+  # 前端只需要 VITE_* 构建期变量：
+  # 用 env -u 显式剔除后端/AI 密钥，避免本机包装脚本导出的 AI_TUTOR_API_KEY、
+  # DB_PASSWORD、DB_ROOT_PASSWORD 被开发服务器进程继承（浏览器产物本来也不含它们）。
+  # 只影响这三个变量，其它环境变量、端口与进程身份判定保持不变。
   FRONTEND_PID="$(start_detached "$LOG_DIR/frontend.pid" "$LOG_DIR/frontend.log" \
+    env -u AI_TUTOR_API_KEY -u DB_PASSWORD -u DB_ROOT_PASSWORD \
     "$ROOT/frontend/node_modules/.bin/vite" --host 0.0.0.0 --port "$FRONTEND_PORT" --strictPort)" \
     || fail "无法启动前端进程（pidfile 未生成）"
   FRONTEND_PGID="$(proc_pgid "$FRONTEND_PID")"

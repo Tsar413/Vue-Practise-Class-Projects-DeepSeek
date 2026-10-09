@@ -9,6 +9,10 @@ public final class BusinessExceptions {
     private BusinessExceptions() {
     }
 
+    public static ResponseStatusException badRequest(String message) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+    }
+
     public static ResponseStatusException notFound(String message) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, message);
     }
@@ -19,5 +23,14 @@ public final class BusinessExceptions {
 
     public static ResponseStatusException conflict(String message) {
         return new ResponseStatusException(HttpStatus.CONFLICT, message);
+    }
+
+    /**
+     * 依赖的外部能力暂不可用（例如 AI 辅导尚未配置或上游异常）。
+     * 刻意不使用 401：上游 AI 服务的 401 不代表本系统登录失效，
+     * 返回 401 会让前端误以为需要重新登录。
+     */
+    public static ResponseStatusException serviceUnavailable(String message) {
+        return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, message);
     }
 }

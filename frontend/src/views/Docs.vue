@@ -21,6 +21,9 @@ const opened = ref({})
 const revision = ref(0)
 
 const projectNames = { ticket: '校园抢票', repair: '校园报修', system: '系统管理' }
+// AI 辅导入口：带上当前文档项目（system 不是实训项目，回落到 TICKET）。
+// 教师没有 /tutor 的访问权限，因此入口只对学生显示。
+const tutorProject = computed(() => (project.value === 'repair' ? 'REPAIR' : 'TICKET'))
 const operations = computed(() => project.value === 'ticket'
   ? ticketOps
   : project.value === 'repair' ? repairOps : systemOps.value)
@@ -93,7 +96,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="section-heading">
+  <div>
+    <p v-if="!auth.teacher" class="hint">
+      看不懂某个接口？<RouterLink class="text-button" :to="`/tutor?project=${tutorProject}`">打开 AI 实训辅导（会带上当前项目） →</RouterLink>
+    </p>
+
+    <div class="section-heading">
     <div>
       <h1>接口文档</h1>
       <p>从参数到响应，逐步理解每一次请求。</p>
@@ -151,4 +159,5 @@ onUnmounted(() => {
     </section>
     <p v-if="!visibleCount" class="empty">没有找到匹配的接口，请调整搜索条件。</p>
   </div>
+</div>
 </template>

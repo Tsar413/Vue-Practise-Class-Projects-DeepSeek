@@ -65,8 +65,34 @@ public class GlobalExceptionHandler {
     /** 数据库约束异常，例如必填字段缺失、字段长度超限。 */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Result<Void>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        // 外键约束（删除被引用的账号，例如已有实训任务或成果档案）给明确业务提示，
+        // 不泛化成 500，也不级联删除教学档案。
+        if (isForeignKeyViolation(e)) {
+            log.warn("外键约束阻止了删除操作");
+            return error(HttpStatus.CONFLICT,
+                    "该账号仍被业务数据引用（如实训任务、成果提交或辅导会话），请先处理关联数据后再删除");
+        }
         log.error("数据库数据约束异常", e);
         return error(HttpStatus.CONFLICT, "数据不符合数据库约束，操作失败");
+    }
+
+    /** 判断是否为外键约束失败；只读取异常链中的错误码，不输出 SQL 或参数值。 */
+    private boolean isForeignKeyViolation(Throwable e) {
+        Throwable cur = e;
+        int depth = 0;
+        while (cur != null && depth < 8) {
+            if (cur instanceof java.sql.SQLIntegrityConstraintViolationException sqlEx) {
+                String state = sqlEx.getSQLState();
+                int code = sqlEx.getErrorCode();
+                // MySQL: 1451 父行被引用 / 1452 子行引用缺失；SQLState 23000 为完整性约束
+                if (code == 1451 || code == 1452 || "23000".equals(state)) {
+                    return true;
+                }
+            }
+            cur = cur.getCause();
+            depth++;
+        }
+        return false;
     }
 
     /** Service 主动抛出的状态异常，例如创建用户或工作空间失败。 */

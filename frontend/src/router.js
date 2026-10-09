@@ -14,6 +14,15 @@ const routes = [
   { path: '/addresses', component: () => import('./views/Addresses.vue'), meta: { student: true, title: '接口地址' } },
   { path: '/docs', component: () => import('./views/Docs.vue'), meta: { title: '接口文档' } },
   { path: '/reset', component: () => import('./views/Reset.vue'), meta: { student: true, title: '数据重置' } },
+  // 实训任务与成果（师生共用入口，具体视图按角色区分）
+  { path: '/teacher/tasks', component: () => import('./views/teaching/TaskList.vue'), meta: { teacher: true, title: '实训任务' } },
+  { path: '/teacher/tasks/new', component: () => import('./views/teaching/TaskForm.vue'), meta: { teacher: true, title: '新建任务' } },
+  { path: '/teacher/tasks/:id', component: () => import('./views/teaching/TeacherTaskDetail.vue'), meta: { teacher: true, title: '任务详情' } },
+  { path: '/teacher/tasks/:id/edit', component: () => import('./views/teaching/TaskForm.vue'), meta: { teacher: true, title: '编辑任务' } },
+  { path: '/tasks', component: () => import('./views/teaching/TaskList.vue'), meta: { student: true, title: '我的任务' } },
+  { path: '/tasks/:id', component: () => import('./views/teaching/StudentTaskDetail.vue'), meta: { student: true, title: '任务详情' } },
+  // AI 实训辅导：仅学生
+  { path: '/tutor', component: () => import('./views/teaching/AiTutor.vue'), meta: { student: true, title: 'AI 实训辅导' } },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 

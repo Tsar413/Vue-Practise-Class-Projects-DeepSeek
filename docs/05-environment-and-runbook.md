@@ -114,3 +114,23 @@ bash scripts/review-env.sh stop
 角色、workspace、跨学生访问和重置范围由后端校验；图片删除任务与业务事务同时提交，
 后台每 30 秒处理任务。磁盘删除和事务回滚已有实际验证，见最终验收记录。
 抢票/报修高负载压测、生产部署及宿主机真实浏览器连通性仍未验证。
+
+## 10. 教学与 AI 辅导模块的运行要点
+
+新增结构必须通过迁移脚本创建，应用已改为 `ddl-auto: none`：
+
+```bash
+# 只读预检 / 状态
+python3 scripts/migrate.py --database <库> --dry-run
+python3 scripts/migrate.py --database <库> --status
+# 实际应用（会校验 SHA-256、结构与唯一约束，成功后写 schema_migration）
+python3 scripts/migrate.py --database <库>
+```
+
+* 迁移器必须显式给出 `--database`，不会切库也不会建库；
+  失败保留现场、不自动删表，重复执行幂等且不刷新首次 `applied_at`。
+* 教学截图目录 `TEACHING_FILES_ROOT`（默认后端工作目录下 `teaching-files`）
+  与报修图片目录**分开**，不要互相指认。
+* AI 辅导密钥只来自环境变量；未配置时页面显示「AI辅导暂未配置」，
+  不会用模拟答案冒充真实回答。教师看不到学生私聊。
+* 详细表结构、接口与规则见 [教学与 AI 辅导](08-teaching-and-ai-tutor.md)。

@@ -53,3 +53,8 @@ replay_pid*.log
 .runtime/
 coverage/
 playwright-report/
+
+# 教学成果截图运行目录（独立于报修图片目录）
+teaching-files/
+__pycache__/
+*.pyc

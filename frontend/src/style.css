@@ -17,3 +17,144 @@
 .doc-folder-content{padding:5px 18px 10px;border-top:1px solid var(--border)}
 .doc-folder-content .endpoint{margin:12px 0}
 @media(max-width:600px){.doc-folder-toggle{padding:15px 12px;gap:10px}.doc-folder-name{font-size:15px}.doc-folder-name small{font-size:11px}.doc-folder-count{font-size:11px}.doc-folder-content{padding:3px 8px 7px}.folder-icon{width:21px;height:21px}}
+
+/* ==========================================================================
+   教学任务、成果评价与 AI 实训辅导
+   —— 仅新增类，不改动上方任何既有页面规则。
+   配色沿用全局变量：--cyan 主色、--green 次色、--border 描边、--slate 正文。
+   ========================================================================== */
+
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:26px;margin:28px 0 6px}
+.page-head p{font-size:13px;margin:0;max-width:70ch}
+.page-head .actions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0}
+
+/* 任务卡片网格：与既有 .project-grid 视觉一致，改为自适应列数 */
+.task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:24px;margin:22px 0 30px}
+.task-card{display:flex;flex-direction:column;gap:12px;position:relative;border:1px solid var(--border);border-top:3px solid var(--cyan);padding:22px 24px;color:var(--slate);background:#fff;min-width:0}
+.task-card:hover{background:#fafcfc;text-decoration:none;border-color:#d7e6ea}
+.task-card h2{font-size:18px;margin:0;overflow-wrap:anywhere}
+.task-card-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.task-card-body{font-size:13px;color:#6d7a88;line-height:1.8;max-height:5.4em;overflow:hidden;overflow-wrap:anywhere}
+.task-card-body p{margin:0 0 6px;color:inherit;font-size:13px;line-height:1.8}
+.task-card-body ul{margin:0 0 6px;padding-left:18px}
+.task-state{font-size:12px;color:#8b959e;margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.expired{color:#b9773f;background:#fdf6ec;border-radius:3px;padding:1px 6px}
+
+/* 任务列表/详情里的键值信息 */
+.task-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:2px 0 0;border-top:1px solid #f0f2f4;padding-top:12px}
+.task-meta>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.task-meta dt{font-size:11px;color:#98a1ab}
+.task-meta dd{margin:0;font-size:13px;color:#5b6875;overflow-wrap:anywhere}
+
+/* 状态标签：沿用既有 .badge 尺寸，颜色按状态区分 */
+.tag{font-size:11px;white-space:nowrap;border-radius:3px;padding:4px 8px;background:#f0f2f4;color:#8b959e}
+.tag-open{background:#eaf7fa;color:#128ba1}
+.tag-draft{background:#f2f3f5;color:#8b959e}
+.tag-closed{background:#f4f5f6;color:#98a1ab}
+.tag-done{background:#f1f8e7;color:#6f9d33}
+.tag-warn{background:#fdf6ec;color:#b9773f}
+.tag-project{background:#f0f2f4;color:#7c8892}
+
+/* 表单：两列自适应，窄屏自动单列 */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0 22px;align-items:start}
+.form-grid>label,.form-grid>fieldset{min-width:0}
+.form-grid .wide{grid-column:1/-1}
+.form-grid fieldset{border:1px solid var(--border);border-radius:3px;padding:14px 18px;margin:15px 0}
+.form-grid fieldset legend{padding:0 7px;font-size:13px;color:#6d7a88;font-weight:500}
+.form-grid .actions{display:flex;gap:12px;flex-wrap:wrap;margin:9px 0 4px}
+label.inline{display:flex;flex-direction:row;align-items:center;gap:9px;margin:11px 0;font-weight:400}
+label.inline input{accent-color:#1ac4e2}
+label.inline span{font-size:13px;color:#6d7a88}
+
+/* 富文本：任务要求、验收标准、AI 回答（已清洗） */
+.rich{font-size:13px;line-height:1.9;color:#6b7988;overflow-wrap:anywhere}
+.rich p{color:inherit;font-size:13px;line-height:1.9;margin:0 0 10px}
+.rich ul,.rich ol{padding-left:20px;margin:0 0 10px}
+.rich li{margin:3px 0}
+.rich h1,.rich h2,.rich h3,.rich h4{font-size:15px;color:#556273;margin:14px 0 9px}
+.rich code{background:#f5f7f9;border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:12px}
+.rich pre{margin:10px 0}
+.rich blockquote{margin:10px 0;padding:6px 14px;border-left:3px solid #dbe4e8;color:#7b8692}
+.rich table{font-size:12px}
+.rich img{max-width:100%}
+
+/* 预格式文本：完成说明、过程、评语——长内容与长 URL 都不撑破 */
+.pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:13px;color:#5f6c79;margin:0 0 10px;line-height:1.85}
+.pre.muted{color:#8b959e}
+
+/* 章节与历史版本 */
+.section-block{border-left:3px solid #e9eef1;padding:4px 0 4px 15px;margin:14px 0}
+.section-block:hover{border-left-color:var(--cyan)}
+.section-block h4{font-size:13px;margin:0 0 7px;color:#5b6875}
+.version-block{border:1px solid var(--border);border-top:3px solid var(--cyan);padding:18px 20px;margin:18px 0;background:#fff}
+.version-block>header{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid #f0f2f4;padding-bottom:10px;margin-bottom:13px}
+.version-block>header strong{font-size:15px;color:#4f5d6b}
+.version-block>header span{font-size:12px;color:#939ca5}
+.eval-list{list-style:none;padding:12px 15px;margin:12px 0 0;background:#f7fafb;border:1px solid #e6eef1;border-radius:3px;font-size:13px;color:#5f6c79}
+.eval-list li+li{margin-top:10px;padding-top:10px;border-top:1px solid #e9eef1}
+
+/* 截图按钮与列表 */
+.shot-row{display:flex;flex-wrap:wrap;gap:9px;margin:9px 0}
+.shot{background:#f2f8fa;border:1px solid #d5e6ea;color:#128ba1;font-size:12px;padding:7px 12px;border-radius:3px;max-width:100%;overflow-wrap:anywhere;text-align:left}
+.shot:hover{background:#e7f4f7;border-color:#b9dbe2;color:#0f7d90}
+.shot-list{list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:8px}
+.shot-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #f2f4f6;padding-bottom:8px}
+.muted{color:#939ca5;font-size:12px}
+
+/* AI 辅导：左会话列表 + 右对话区 */
+.tutor-layout{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:24px;align-items:start;margin:22px 0 30px}
+.tutor-layout .panel{margin:0;min-width:0}
+.conv-list{list-style:none;padding:0;margin:12px 0}
+.conv-list li{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #f2f4f6;padding:7px 0}
+.conv-list li.active{background:#f4fbfc;box-shadow:inset 3px 0 var(--cyan)}
+.conv-list li>button:first-child{text-align:left;flex:1;min-width:0;overflow-wrap:anywhere;font-size:13px;color:#556273}
+.conv-list li.active>button:first-child{color:#128ba1;font-weight:500}
+.conv-list .muted{display:block;font-size:11px;margin-top:2px}
+.tutor-thread{display:flex;flex-direction:column;gap:18px;min-width:0}
+.thread{max-height:min(56vh,560px);overflow:auto;padding:4px 4px 10px;display:flex;flex-direction:column;gap:14px;background:#fafbfc;border:1px solid #eef1f3;border-radius:3px;min-height:180px}
+.bubble{border:1px solid var(--border);border-radius:3px;padding:13px 16px;background:#fff;min-width:0}
+.bubble>header{font-size:12px;color:#939ca5;margin-bottom:7px}
+.bubble.user{background:#f3fafc;border-color:#d9ebef;margin-left:min(48px,8%)}
+.bubble.user>header{color:#128ba1}
+.bubble.assistant{margin-right:min(48px,8%)}
+.refs{margin-top:11px;border-top:1px dashed #e2e8ec;padding-top:9px;font-size:12px;color:#7b8692}
+.refs strong{font-size:12px;color:#5b6875}
+.refs ul{margin:6px 0 0;padding-left:18px}
+.refs li{overflow-wrap:anywhere;margin:2px 0}
+.refs .muted{display:block}
+
+/* 表格：新页面在 panel 内直接使用 .table（沿用全局 table 规则，仅补容器） */
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table-wrap,.panel>.table{max-width:100%;overflow:auto}
+
+/* 窄屏适配：先两列，再单列；长内容与按钮都不溢出 */
+@media(max-width:1000px){
+  .tutor-layout{grid-template-columns:1fr}
+  .thread{max-height:60vh}
+  .bubble.user,.bubble.assistant{margin-left:0;margin-right:0}
+}
+@media(max-width:850px){
+  .task-grid{grid-template-columns:1fr 1fr;gap:18px}
+  .page-head{flex-direction:column;gap:14px}
+  .page-head .actions{width:100%}
+}
+@media(max-width:600px){
+  .page-head{margin:20px 0 4px}
+  .page-head .actions .button,.page-head .actions button{width:100%}
+  .task-grid{grid-template-columns:1fr;gap:14px}
+  .task-card{padding:18px 16px}
+  .task-meta{grid-template-columns:1fr 1fr;gap:9px 0}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .actions .button,.form-grid .actions button{width:100%}
+  .version-block{padding:14px 13px}
+  .version-block>header{flex-direction:column;gap:4px;align-items:flex-start}
+  .section-block{padding-left:11px}
+  .shot-row{gap:7px}
+  .shot{width:100%}
+  .shot-list li{flex-direction:column;align-items:flex-start;gap:4px}
+  .conv-list li{flex-wrap:wrap}
+  .thread{max-height:52vh}
+  .bubble{padding:11px 13px}
+  .table{font-size:12px}
+  .table th,.table td{padding:9px 10px}
+}

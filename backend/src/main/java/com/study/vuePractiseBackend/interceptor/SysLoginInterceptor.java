@@ -26,8 +26,13 @@ import java.util.Map;
  * 校验顺序：凭证格式 → 凭证存在 → 未被撤销 → 未过期 → 账号存在且启用
  *          → 学生班级有效 → 接口级权限与数据归属。
  *
- * 权限规则：教师放行全部系统接口；
- * 学生只允许按本人学号读取本人账号 / 工作空间，以及重置本人指定项目。
+ * 权限规则：
+ *   * 教师放行全部系统接口；
+ *   * 学生只允许按本人学号读取本人账号 / 工作空间、重置本人指定项目，
+ *     以及访问新增的教学模块与本人 AI 辅导会话（逐条路由模板 + 方法匹配，不做前缀放行）。
+ *
+ * 教师**不**在 AI 辅导白名单内：教师不能查看学生私聊。
+ * 教学模块的教师专用路由也不在白名单内，学生访问会被拒绝。
  */
 @Component
 public class SysLoginInterceptor implements HandlerInterceptor {
@@ -135,25 +140,59 @@ public class SysLoginInterceptor implements HandlerInterceptor {
         String pattern = patternValue.toString();
         String method = request.getMethod();
 
-        boolean allowedEndpoint =
+        // 学生可用的系统接口（按本人学号）
+        boolean systemEndpoint =
                 ("GET".equals(method)
                         && ("/api/sys-user/one/{id}".equals(pattern)
                         || "/api/sys-workspace/one/{id}".equals(pattern)))
                         || ("POST".equals(method)
                         && "/api/sys-workspace/one/{id}/reset".equals(pattern));
 
-        if (!allowedEndpoint) {
-            return false;
+        if (systemEndpoint) {
+            Object variablesValue = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+            if (!(variablesValue instanceof Map<?, ?> variables)) {
+                return false;
+            }
+            // 学生只能操作自己的学号：替换路径 ID 无法越权
+            Object requestedId = variables.get("id");
+            return user.getId().equals(requestedId);
         }
 
-        Object variablesValue = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-        if (!(variablesValue instanceof Map<?, ?> variables)) {
-            return false;
-        }
+        // 新增的教学与 AI 辅导接口：逐条列出「方法 + 路由模板」，不使用前缀放行。
+        // 数据归属（学号、任务班级、会话归属）由对应服务在每次请求内校验，
+        // 这里只负责「学生是否可以访问该路由」这一层。
+        return isStudentTeachingEndpoint(method, pattern)
+                || isStudentAiTutorEndpoint(method, pattern);
+    }
 
-        // 学生只能操作自己的学号：替换路径 ID 无法越权
-        Object requestedId = variables.get("id");
-        return user.getId().equals(requestedId);
+    /**
+     * 教学模块：学生可访问的路由模板。
+     * 教师专用路由（任务新建/编辑/发布/关闭/统计/教师评价/按班级查看）不在此列，
+     * 学生访问会在这里直接被拒。
+     */
+    private boolean isStudentTeachingEndpoint(String method, String pattern) {
+        return switch (pattern) {
+            case "/api/teaching/tasks" -> "GET".equals(method);
+            case "/api/teaching/tasks/{id}" -> "GET".equals(method);
+            case "/api/teaching/tasks/{id}/submission" -> "GET".equals(method);
+            case "/api/teaching/tasks/{id}/draft" -> "PUT".equals(method);
+            case "/api/teaching/tasks/{id}/submissions" -> "POST".equals(method);
+            case "/api/teaching/tasks/{id}/attachments" -> "POST".equals(method) || "GET".equals(method);
+            case "/api/teaching/attachments/{id}" -> "DELETE".equals(method);
+            case "/api/teaching/attachments/{id}/content" -> "GET".equals(method);
+            default -> false;
+        };
+    }
+
+    /** AI 辅导：仅学生本人会话，教师不在白名单内（教师访问会 403）。 */
+    private boolean isStudentAiTutorEndpoint(String method, String pattern) {
+        return switch (pattern) {
+            case "/api/ai-tutor/conversations" -> "GET".equals(method) || "POST".equals(method);
+            case "/api/ai-tutor/conversations/{id}" -> "DELETE".equals(method);
+            case "/api/ai-tutor/conversations/{id}/messages" -> "GET".equals(method);
+            case "/api/ai-tutor/ask" -> "POST".equals(method);
+            default -> false;
+        };
     }
 
     /** 返回与 Result 一致的 JSON；message 只用本类固定提示，不拼接外部输入。 */

@@ -15,8 +15,10 @@ spring:
     password: ${DB_PASSWORD:vue_practice_local}
   jpa:
     hibernate:
-      # 与参考项目一致：由实体定义自动建表 / 补列
-      ddl-auto: update
+      # 关闭自动建表/改表：新增结构一律通过 db/03-teaching-ai-tutor.sql
+      # 与 scripts/migrate.py 显式迁移，避免 ddl-auto 静默改结构。
+      # 未执行迁移时，访问新增接口会因表不存在而明确报错，而不是偷偷建表。
+      ddl-auto: none
     show-sql: false
     open-in-view: false
   servlet:
@@ -31,8 +33,38 @@ mybatis-plus:
 
 repair:
   files:
-    # 图片存储根目录，可用环境变量覆盖；不要提交到 Git
+    # 报修图片存储根目录，可用环境变量覆盖；不要提交到 Git
     root: ${REPAIR_FILES_ROOT:./repair-files}
+
+teaching:
+  files:
+    # 教学成果截图存储根目录，与报修图片目录分开；不要提交到 Git
+    root: ${TEACHING_FILES_ROOT:./teaching-files}
+
+ai:
+  tutor:
+    # 全部来自环境变量；仓库中不保存任何密钥。
+    # 未配置时接口返回“AI辅导暂未配置”，不会调用模型，也不会生成模拟答案。
+    base-url: ${AI_TUTOR_BASE_URL:}
+    model: ${AI_TUTOR_MODEL:}
+    api-key: ${AI_TUTOR_API_KEY:}
+    connect-timeout-seconds: ${AI_TUTOR_CONNECT_TIMEOUT_SECONDS:5}
+    timeout-seconds: ${AI_TUTOR_TIMEOUT_SECONDS:30}
+    max-response-bytes: ${AI_TUTOR_MAX_RESPONSE_BYTES:262144}
+    max-tokens: ${AI_TUTOR_MAX_TOKENS:1200}
+    max-context-chars: ${AI_TUTOR_MAX_CONTEXT_CHARS:12000}
+    max-question-chars: ${AI_TUTOR_MAX_QUESTION_CHARS:2000}
+    max-code-chars: ${AI_TUTOR_MAX_CODE_CHARS:4000}
+    max-error-chars: ${AI_TUTOR_MAX_ERROR_CHARS:2000}
+    max-history-messages: ${AI_TUTOR_MAX_HISTORY_MESSAGES:8}
+    max-output-chars: ${AI_TUTOR_MAX_OUTPUT_CHARS:4000}
+    max-conversations-per-student: ${AI_TUTOR_MAX_CONVERSATIONS_PER_STUDENT:50}
+    min-interval-seconds: ${AI_TUTOR_MIN_INTERVAL_SECONDS:5}
+    daily-limit-per-student: ${AI_TUTOR_DAILY_LIMIT_PER_STUDENT:100}
+    max-concurrent-per-student: ${AI_TUTOR_MAX_CONCURRENT_PER_STUDENT:1}
+    max-concurrent-global: ${AI_TUTOR_MAX_CONCURRENT_GLOBAL:4}
+    acquire-timeout-millis: ${AI_TUTOR_ACQUIRE_TIMEOUT_MILLIS:2000}
+    thinking-enabled: ${AI_TUTOR_THINKING_ENABLED:false}
 
 app:
   cors:

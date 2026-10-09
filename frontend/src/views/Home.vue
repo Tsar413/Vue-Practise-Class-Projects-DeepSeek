@@ -68,6 +68,12 @@ onMounted(() => { if (!auth.teacher) load() })
       <p>按班级初始化项目，按学号管理空间与重置数据。</p>
       <span class="link-text">进入空间管理 →</span>
     </RouterLink>
+    <RouterLink class="project-tile" to="/teacher/tasks">
+      <span class="project-number">03</span>
+      <h2>实训任务</h2>
+      <p>发布带截止时间与满分要求的任务，查看学生成果并评分或退回。</p>
+      <span class="link-text">进入任务管理 →</span>
+    </RouterLink>
   </div>
   <div v-else class="project-grid">
     <RouterLink class="project-tile" to="/data?project=ticket">
@@ -81,6 +87,18 @@ onMounted(() => { if (!auth.teacher) load() })
       <h2>校园报修</h2>
       <p>从设备与工单出发，观察派单、维修、确认与评价的业务过程。</p>
       <span class="link-text">查看报修数据 →</span>
+    </RouterLink>
+    <RouterLink class="project-tile" to="/tasks">
+      <span class="project-number">03</span>
+      <h2>实训任务</h2>
+      <p>查看老师布置的任务，提交成果、跟踪评价，遇到问题可用 AI 辅导。</p>
+      <span class="link-text">查看我的任务 →</span>
+    </RouterLink>
+    <RouterLink class="project-tile green" to="/tutor">
+      <span class="project-number">04</span>
+      <h2>AI 实训辅导</h2>
+      <p>结合当前项目的接口文档与任务要求，逐步定位问题、给出最小修改建议。</p>
+      <span class="link-text">开始提问 →</span>
     </RouterLink>
   </div>
 

@@ -124,7 +124,8 @@ node scripts/make-fixtures.mjs
 | [docs/03-reuse-and-reimplementation.md](docs/03-reuse-and-reimplementation.md) | 复用范围、重新实现范围与关键设计决定 |
 | [docs/04-development-log.md](docs/04-development-log.md) | 分模块复现过程、问题修复与测试结果 |
 | [docs/05-environment-and-runbook.md](docs/05-environment-and-runbook.md) | 环境依赖、初始化、启动停止、脚本语义与运行限制 |
-| [docs/07-final-acceptance.md](docs/07-final-acceptance.md) | 本轮最终结果、分工、证据和剩余限制 |
+| [docs/07-final-acceptance.md](docs/07-final-acceptance.md) | 上一轮最终结果、分工、证据和剩余限制 |
+| [docs/08-teaching-and-ai-tutor.md](docs/08-teaching-and-ai-tutor.md) | 新增：教学任务、成果版本、教师评价与 AI 实训辅导（表/接口/规则/配置/测试） |
 | [docs/06-review-fixes.md](docs/06-review-fixes.md) | 第二轮审查：问题、修复与验证记录 |
 | [docs/verification-api.txt](docs/verification-api.txt) | API 对照验证逐项结果 |
 | [docs/verification-browser.txt](docs/verification-browser.txt) | 浏览器端到端验证逐项结果 |
@@ -134,3 +135,5 @@ node scripts/make-fixtures.mjs
 - 仓库中不包含任何真实学生姓名、学号或联系方式；演示数据全部为虚构内容。
 - 仓库包含公开的本地数据库默认口令和虚构演示账号口令；真实凭据、API Key、Token、长期访问码及私钥不得写入仓库。本机配置保存在忽略文件中。
 - 本轮只复现参考项目已有功能；任务发布、成果提交、自动评分与 AI 辅导留待下一阶段。
+
+- [教学流程与 AI 辅导最终验收](docs/09-teaching-acceptance.md)

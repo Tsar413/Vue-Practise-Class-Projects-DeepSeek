@@ -11,8 +11,8 @@ const route = useRoute()
 
 // 导航按角色区分：教师看到管理入口，学生看到项目与重置入口
 const links = computed(() => auth.teacher
-  ? [['/', '教学首页'], ['/teacher/classes', '班级管理'], ['/teacher/users', '系统用户'], ['/teacher/workspaces', '工作空间'], ['/teacher/import', '学生导入'], ['/docs', '接口文档']]
-  : [['/', '实训首页'], ['/data', '我的项目数据'], ['/addresses', '接口地址'], ['/docs', '接口文档'], ['/reset', '数据重置']])
+  ? [['/', '教学首页'], ['/teacher/tasks', '实训任务'], ['/teacher/classes', '班级管理'], ['/teacher/users', '系统用户'], ['/teacher/workspaces', '工作空间'], ['/teacher/import', '学生导入'], ['/docs', '接口文档']]
+  : [['/', '实训首页'], ['/tasks', '我的任务'], ['/tutor', 'AI 辅导'], ['/data', '我的项目数据'], ['/addresses', '接口地址'], ['/docs', '接口文档'], ['/reset', '数据重置']])
 
 async function logout() {
   try {
