@@ -13,8 +13,8 @@ MySQL 客户端沿用 `MYSQL_HOME` 或 `~/tools/opt/mysql-8.0.44-linux-glibc2.17
 该虚拟机的本地 root socket 用于测试库的触发器、行锁和只读证据查询；不是平台登录口令。
 
 每次 HTTP 写入和 SQL 故障注入前验证：Java PID/cwd、独立端口、JDBC 库名、独立应用用户、
-实际 MySQL 会话数据库、两种图片根目录没有符号链接绕向正常目录、AI 仅指向回环桩且密钥
-只允许空或固定虚构值。任一项不符即停止。不能通过环境变量把本套件指向正常库或 8100。
+实际 MySQL 会话数据库、两种图片根目录没有符号链接绕向正常目录、off/protocol 模式下 AI 仅指向回环桩且密钥
+只允许空或固定虚构值（显式 real 扩展见文末）。任一项不符即停止。不能通过环境变量把本套件指向正常库或 8100。
 SQL 操作拒绝 `USE`、`TRUNCATE`、`DROP DATABASE`；故障触发器仅作用于本用例新建对象，
 在 `finally` 中删除。中断后先检查测试库的 `boundary_*` 触发器，不要盲目继续测试。
 
@@ -88,3 +88,63 @@ AI 删除竞态允许合法的两种先后顺序：删除先完成则禁止新�
 浏览器检查单及实际证据单列于公共报告，不把 API 断言冒充浏览器验证。
 
 任务网络超时检查可在已打开的隔离辅导页前运行 `python3 tests/integration/pause_backend.py`，立即刷新页面。该脚本只暂停核验后的隔离 Java，45 秒自动恢复；前端 30 秒超时后应出现重试，恢复后点击重试。不要用于正常后端。
+
+## 显式真实 DeepSeek 验收（付费、默认不执行）
+
+本段与前面的协议桩证据分开。`run.py --mode all` 仍只运行 off/protocol，
+不会读取真实密钥。只有 `environment.py start --mode real` 和
+`real_acceptance.py ... --mode real` 明确选择真实模式。
+
+真实模式继续核验同一隔离库、独立 MySQL 用户及实际会话、18100 端口、Java 身份、
+独立运行/两种图片目录。配置只读取 owner-only 的 `.runtime/ai-tutor.env`，不执行
+shell、不读取 Harness/Codex 配置；端点必须精确为 `https://api.deepseek.com` 或
+`https://api.deepseek.com/v1`，不允许重定向、任意路径/端口、HTTP 或相似域名。
+运行进程的密钥/模型/端点必须与该独立文件一致。默认/协议桩护栏遇到真实后端仍拒绝。
+隔离服务固定输出 `max_tokens=600`、读取超时 60 秒、上下文上限 24000 字符。
+正常环境配置和限额不变。隔离前端不会继承密钥。
+
+每个阶段单独执行并检查结果，绝不循环重试。预算持久化在忽略的
+`.runtime/teaching-review-20261009/real-acceptance-budget.json`：
+最多 5 个平台尝试（幂等重放也保守占一个槽），发送前占位；失败也计入，存在未完成槽
+则禁止其他尝试。该记录不是供应商账单计数。浏览器必须先占位，再只点一次发送。
+脚本不提供预算重置；已有运行不能被 `prepare` 覆盖。本次已完成，**不要为重复运行
+删除账本**；新一轮付费运行必须先取得新的预算授权，再归档旧证据并准备新一轮。
+
+不付费的安全单元测试：
+
+```bash
+python3 -m unittest discover -s tests/integration -p test_real_policy.py -v
+```
+
+新一轮已授权验收的操作顺序（现有账本会阻止本轮再次运行）：
+
+```bash
+cd /home/tsar413/projects/Vue-Practise-Class-Projects-DeepSeek
+bash .runtime/run-local.sh stop
+# 操作期间设置退出清理，异常时也恢复正常服务：
+trap 'python3 tests/integration/environment.py stop; bash .runtime/run-local.sh start' EXIT
+python3 tests/integration/environment.py start --mode real
+python3 tests/integration/real_acceptance.py prepare --mode real
+python3 tests/integration/real_acceptance.py ticket --mode real
+# 阅读私有 state 文件内的回答，按文档人工核对；失败先分析，不重试。
+python3 tests/integration/real_acceptance.py followup --mode real
+python3 tests/integration/real_acceptance.py repair --mode real
+python3 tests/integration/real_acceptance.py replay --mode real
+python3 tests/integration/real_acceptance.py isolation --mode real
+python3 tests/integration/real_acceptance.py browser-reserve --mode real
+# 使用输出的虚构学生账号（测试初始密码 123456）登录 http://127.0.0.1:15173。
+# 打开输出的任务详情 → AI 辅导 → 输入输出的问题 → 仅点击一次发送。
+# 核对回答、来源、禁用中的按钮、刷新恢复、项目切换和浏览器控制台。
+python3 tests/integration/real_acceptance.py browser-collect --mode real
+python3 tests/integration/real_acceptance.py verify --mode real
+python3 tests/integration/environment.py stop
+bash .runtime/run-local.sh start
+trap - EXIT
+```
+
+`browser-collect` 读取隔离 Tomcat 访问日志，记录真实平台 HTTP 状态和服务器处理耗时；
+日志仅记录方法、路径、状态和耗时，不含请求头、查询参数或正文。Tomcat 11 的 `%D`
+单位为微秒。HTTP 脚本使用客户端单调时钟，两种耗时口径分开说明。
+平台当前不向前端返回供应商 `usage`/`finish_reason`；不能用字符数或 600-token 上限
+冒充实际 token 用量，也不能断言供应商未提供 usage。
+真实验收报告见 `docs/11-real-deepseek-acceptance.md`。

@@ -1,7 +1,8 @@
 """Codex contract tests. Fail closed before every HTTP write / SQL injection.
 
-Only the fixed, existing local review database is accepted. No real model key
-is read. Credentials in this suite are public synthetic fixtures.
+Only the fixed, existing local review database is accepted. Real keys are read
+only by the explicit real guard from the independent tutor configuration.
+Platform login credentials are public synthetic fixtures.
 """
 from pathlib import Path
 import base64, contextlib, json, os, re, selectors, subprocess, time, urllib.error, urllib.request, uuid
@@ -37,11 +38,20 @@ def guard(mode=None):
         expected=RUNTIME/folder
         assert Path(env.get(key,b'').decode()).resolve()==expected, 'Unsafe image root'
         assert expected.resolve()==expected and expected!=ROOT/'backend'/folder
-    # Never send even one request to a backend configured with a real provider.
-    assert env.get(b'AI_TUTOR_API_KEY',b'') in [b'', FIXTURE_KEY.encode()]
-    assert env.get(b'AI_TUTOR_BASE_URL')==STUB.encode()
-    if mode=='protocol': assert env.get(b'AI_TUTOR_API_KEY')==FIXTURE_KEY.encode()
-    if mode=='off': assert not env.get(b'AI_TUTOR_API_KEY')
+    if mode=='real':
+        from real_policy import load_settings
+        configured=load_settings(ROOT)
+        assert env.get(b'AI_TUTOR_ACCEPTANCE_MODE')==b'real', 'Backend not explicitly started in real acceptance mode'
+        for name,value in configured.items():
+            assert env.get(name.encode())==value.encode(), 'Real backend differs from independent tutor configuration'
+        assert env.get(b'AI_TUTOR_MAX_TOKENS')==b'600', 'Real output budget must be 600 tokens'
+    else:
+        # Default and every existing protocol test remain fake-only.
+        assert mode in (None,'off','protocol'), 'Unknown guard mode'
+        assert env.get(b'AI_TUTOR_API_KEY',b'') in [b'', FIXTURE_KEY.encode()]
+        assert env.get(b'AI_TUTOR_BASE_URL')==STUB.encode()
+        if mode=='protocol': assert env.get(b'AI_TUTOR_API_KEY')==FIXTURE_KEY.encode()
+        if mode=='off': assert not env.get(b'AI_TUTOR_API_KEY')
     assert _sql('SELECT DATABASE()')==DATABASE
     actual=_sql("SELECT DISTINCT PROCESSLIST_DB FROM performance_schema.threads WHERE PROCESSLIST_USER='"+DATABASE+"_app' AND PROCESSLIST_DB IS NOT NULL").splitlines()
     assert actual==[DATABASE], 'Actual application MySQL sessions are not exclusively isolated'
@@ -51,12 +61,12 @@ def _sql(query):
     assert not re.search(r'\b(USE|TRUNCATE)\b|DROP\s+DATABASE',query,re.I), 'Unsafe SQL operation'
     return subprocess.check_output([*MYSQL,'-e',query],env=MYSQL_ENV,text=True,stderr=subprocess.PIPE).strip()
 
-def sql(query):
-    guard(); return _sql(query)
+def sql(query,mode=None):
+    guard(mode); return _sql(query)
 
-def request(method,path,data=None,token=None,upload=None):
+def request(method,path,data=None,token=None,upload=None,mode=None,timeout=25):
     assert path.startswith('/') and not path.startswith('//')
-    if method!='GET': guard()
+    if method!='GET' or mode=='real': guard(mode)
     headers={'Accept':'application/json'}
     if token: headers['Authorization']='Bearer '+token
     if upload is None:
@@ -66,7 +76,7 @@ def request(method,path,data=None,token=None,upload=None):
         body=(f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{name}"\r\nContent-Type: {mime}\r\n\r\n').encode()+content+f'\r\n--{boundary}--\r\n'.encode()
         headers['Content-Type']='multipart/form-data; boundary='+boundary
     req=urllib.request.Request(API+path, data=body, headers=headers, method=method)
-    try: response=OPENER.open(req,timeout=25)
+    try: response=OPENER.open(req,timeout=timeout)
     except urllib.error.HTTPError as e: response=e
     with response:
         raw=response.read()
@@ -75,11 +85,12 @@ def request(method,path,data=None,token=None,upload=None):
         return response.status,data
 
 class Account:
-    def __init__(self,id):
-        status,body=request('POST','/login',dict(id=id,password='123456'))
+    def __init__(self,id,mode=None):
+        self.mode=mode
+        status,body=request('POST','/login',dict(id=id,password='123456'),mode=mode)
         assert status==200, 'Synthetic fixture login failed'
         self.id=id; self.token=body['data']['token']
-    def call(self,method,path,data=None,**kw):return request(method,path,data,self.token,**kw)
+    def call(self,method,path,data=None,**kw):return request(method,path,data,self.token,mode=self.mode,**kw)
 
 def stub(action='state',data=None):
     req=urllib.request.Request(STUB+'/control/'+action,data=None if data is None else json.dumps(data).encode(),headers={'Content-Type':'application/json'})
