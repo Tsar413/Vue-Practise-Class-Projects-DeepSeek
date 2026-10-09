@@ -113,12 +113,12 @@
                       },
                       "campus": {
                         "type": "string",
-                        "description": "新吴校区或藕塘校区",
+                        "description": "校区A或校区B",
                         "maxLength": 50,
                         "nullable": true,
                         "enum": [
-                          "新吴校区",
-                          "藕塘校区"
+                          "校区A",
+                          "校区B"
                         ]
                       },
                       "role": {
@@ -153,11 +153,11 @@
                 {
                   "id": 102,
                   "userNo": "N0001",
-                  "realName": "张老师",
+                  "realName": "教师示例3",
                   "workspaceId": 40,
                   "phone": "13800000000",
-                  "department": "电子信息工程系",
-                  "campus": "新吴校区",
+                  "department": "院系A",
+                  "campus": "校区A",
                   "role": "USER",
                   "status": 1
                 }
@@ -484,12 +484,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "role": {
@@ -522,11 +522,11 @@
               "data": {
                 "id": 102,
                 "userNo": "N0001",
-                "realName": "张老师",
+                "realName": "教师示例3",
                 "workspaceId": 40,
                 "phone": "13800000000",
-                "department": "电子信息工程系",
-                "campus": "新吴校区",
+                "department": "院系A",
+                "campus": "校区A",
                 "role": "USER",
                 "status": 1
               }
@@ -852,12 +852,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "role": {
@@ -890,11 +890,11 @@
               "data": {
                 "id": 102,
                 "userNo": "N0001",
-                "realName": "张老师",
+                "realName": "教师示例3",
                 "workspaceId": 40,
                 "phone": "13800000000",
-                "department": "电子信息工程系",
-                "campus": "新吴校区",
+                "department": "院系A",
+                "campus": "校区A",
                 "role": "USER",
                 "status": 1
               }

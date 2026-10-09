@@ -1,5 +1,6 @@
 package com.study.vuePractiseBackend.service.impl;
 
+import com.study.vuePractiseBackend.util.CampusAliasUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -171,8 +172,8 @@ public class RepairDeviceServiceImpl extends ServiceImpl<RepairDeviceMapper, Rep
         // 设备类型不限制固定清单
         String deviceType = requireText(dto.getDeviceType(), "设备类型", 50);
         String campus = requireText(dto.getCampus(), "校区", 50);
-        if (!"新吴校区".equals(campus) && !"藕塘校区".equals(campus)) {
-            throw new IllegalArgumentException("校区只能为新吴校区或藕塘校区");
+        if (!CampusAliasUtil.isAccepted(campus)) {
+            throw new IllegalArgumentException(CampusAliasUtil.invalidMessage());
         }
         String location = requireText(dto.getLocation(), "设备地点", 200);
 

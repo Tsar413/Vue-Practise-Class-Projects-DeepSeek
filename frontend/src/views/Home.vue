@@ -1,10 +1,17 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAuth } from '../stores/auth'
 import { sys, errorText } from '../api/client'
+import { personName } from '../utils/privacy'
 import Detail from '../components/Detail.vue'
 
 const auth = useAuth()
+
+// 首页只显示中性代称：姓名用「角色 + 编号」（班级编号不在首页展示）
+const displayName = computed(() => personName(auth.user?.realName, {
+  role: auth.user?.role,
+  id: auth.user?.userId
+}))
 const workspace = ref(null)
 const error = ref('')
 const busy = ref(false)
@@ -29,7 +36,7 @@ onMounted(() => { if (!auth.teacher) load() })
   <section class="welcome">
     <div>
       <span class="eyebrow">{{ auth.teacher ? '有序管理，从容教学' : '我的实训课堂' }}</span>
-      <h1>{{ auth.user?.realName }}，{{ auth.teacher ? '欢迎回到教学平台' : '开始今天的实践吧' }}<span>。</span></h1>
+      <h1>{{ displayName }}，{{ auth.teacher ? '欢迎回到教学平台' : '开始今天的实践吧' }}<span>。</span></h1>
       <p>{{ auth.teacher ? '管理班级与账号，为学生准备独立的实训环境。' : '请先查看项目数据，了解模拟用户与业务状态，再开始接口练习。' }}</p>
       <RouterLink class="button" :to="auth.teacher ? '/teacher/classes' : '/data'">
         {{ auth.teacher ? '管理我的班级' : '查看我的项目数据' }} →

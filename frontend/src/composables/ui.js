@@ -1,11 +1,12 @@
 import { reactive } from 'vue'
+import { privacyField, privacyValue, privacyText } from '../utils/privacy'
 
 export const ui = reactive({ message: '', error: false })
 let timer
 
 export function notify(message, error = false) {
   clearTimeout(timer)
-  ui.message = message
+  ui.message = privacyText(message)
   ui.error = error
   timer = setTimeout(() => ui.message = '', 6000)
 }
@@ -65,12 +66,21 @@ const actionText = {
   SUBMIT: '提交结果', RETURN: '退回', CONFIRM: '确认', CANCEL: '撤回'
 }
 
+/**
+ * 带行上下文的展示入口：用于表格/详情里需要「角色 + 编号」代称的字段。
+ * 只返回新字符串，不修改 row；原值仍保存在 row 上供表单提交与接口调用使用。
+ */
+export function displayCell(row, key, kind = '') {
+  if (!row || typeof row !== 'object') return display(row, key, kind)
+  return display(privacyField(row, key), key, kind)
+}
+
 export function display(value, key, kind = '') {
   if (value == null || value === '') return '—'
   if (key === 'role') return roles[value] || value
   if (key === 'status') return (statusText[kind] || ['停用 / 暂停', '启用'])[value] ?? value
   if (key === 'action') return actionText[value] || value
-  if (typeof value === 'object') return JSON.stringify(value)
+  if (typeof value === 'object') return JSON.stringify(privacyValue(value))
   // 富文本说明在表格中只显示纯文字
   return String(value).replace(/<[^>]*>/g, '')
 }

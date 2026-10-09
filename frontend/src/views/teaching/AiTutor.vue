@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { aiTutor, teaching, errorText } from '../../api/teaching'
 import { markdown } from '../../composables/markdown'
+import { privacyText, privacyRef } from '../../utils/privacy'
 
 const route = useRoute()
 const conversations = ref([])
@@ -245,7 +246,7 @@ onMounted(async () => {
         <select v-model="taskId" :disabled="asking || switching || tasksLoading || Boolean(taskError) || !tasksLoaded" @change="onTaskChange">
           <option :value="null">{{ tasksLoading ? '正在加载任务…' : '不关联具体任务' }}</option>
           <option v-for="item in myTasks" :key="item.id" :value="item.id">
-            {{ item.title }}{{ item.status === 2 ? '（已关闭）' : '' }}
+            {{ privacyText(item.title) }}{{ item.status === 2 ? '（已关闭）' : '' }}
           </option>
         </select>
       </label>
@@ -280,7 +281,7 @@ onMounted(async () => {
       <ul class="conv-list">
         <li v-for="item in conversations" :key="item.id" :class="{ active: item.id === activeId }">
           <button class="text-button" :disabled="asking || switching" @click="openConversation(item.id)">
-            {{ item.title }}（{{ item.messageCount }}）
+            {{ privacyText(item.title) }}（{{ item.messageCount }}）
             <span class="muted">{{ item.project === 'REPAIR' ? '报修' : '抢票' }}{{ item.taskId ? ` · 任务${item.taskId}` : '' }}</span>
           </button>
           <button class="text-button danger" :disabled="asking" @click="removeConversation(item.id)">删除</button>
@@ -301,8 +302,8 @@ onMounted(async () => {
             <strong>参考来源</strong>
             <ul>
               <li v-for="ref in message.contextRefs" :key="`${ref.type}-${ref.id}-${ref.path}`">
-                {{ ref.title || ref.id }}
-                <span v-if="ref.path" class="muted">{{ ref.path }}</span>
+                {{ privacyRef(ref).title || ref.id }}
+                <span v-if="ref.path" class="muted">{{ privacyRef(ref).path }}</span>
               </li>
             </ul>
           </div>

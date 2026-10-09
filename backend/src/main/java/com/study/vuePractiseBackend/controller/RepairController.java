@@ -1,5 +1,6 @@
 package com.study.vuePractiseBackend.controller;
 
+import com.study.vuePractiseBackend.util.CampusAliasUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.study.vuePractiseBackend.common.Result;
 import com.study.vuePractiseBackend.dto.*;
@@ -335,9 +336,10 @@ public class RepairController {
         }
         if (campus != null) {
             campus = campus.trim();
-            if (!campus.isEmpty() && !"新吴校区".equals(campus) && !"藕塘校区".equals(campus)) {
+            // 兼容层：中性值与两个历史旧值都接受，提示只提中性值
+            if (!campus.isEmpty() && !CampusAliasUtil.isAccepted(campus)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new Result<>(400, "校区只能为新吴校区或藕塘校区", null));
+                        .body(new Result<>(400, CampusAliasUtil.invalidMessage(), null));
             }
         }
         if (deviceType != null && !deviceType.isEmpty()) {
@@ -351,7 +353,13 @@ public class RepairController {
         // 必须保留：所有查询限定在当前访问码对应的空间
         wrapper.eq(RepairDevice::getWorkspaceId, workspaceId);
         if (campus != null && !campus.isEmpty()) {
-            wrapper.eq(RepairDevice::getCampus, campus);
+            // 同上：中性校区需同时匹配历史旧值
+            java.util.List<String> campusValues = CampusAliasUtil.queryValues(campus);
+            if (campusValues.size() == 1) {
+                wrapper.eq(RepairDevice::getCampus, campusValues.get(0));
+            } else {
+                wrapper.in(RepairDevice::getCampus, campusValues);
+            }
         }
         if (status != null) {
             wrapper.eq(RepairDevice::getStatus, status);

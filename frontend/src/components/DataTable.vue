@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { labels, display } from '../composables/ui'
+import { labels, displayCell } from '../composables/ui'
 
 // 列表在已加载数据内做筛选与分页，不额外请求后端。
 const props = defineProps({
@@ -37,7 +37,7 @@ watch([search, () => props.rows], () => page.value = 1)
       <tbody>
         <tr v-for="(row, i) in visible" :key="row.id ?? i">
           <td v-for="c in columns" :key="c">
-            <span :class="{ badge: c === 'status', enabled: c === 'status' && row[c] === 1 }">{{ display(row[c], c, kind) }}</span>
+            <span :class="{ badge: c === 'status', enabled: c === 'status' && row[c] === 1 }">{{ displayCell(row, c, kind) }}</span>
           </td>
           <td v-if="actions"><div class="row-actions"><slot :row="row" /></div></td>
         </tr>

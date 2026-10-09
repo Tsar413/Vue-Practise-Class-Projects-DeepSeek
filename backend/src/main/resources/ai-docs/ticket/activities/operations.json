@@ -2,7 +2,7 @@
   {
     "summary": "查询抢票活动列表",
     "deprecated": false,
-    "description": "权限：有效长期访问码；所属学生、班级、空间启用；请使用本人工作空间。列表/详情不另要求模拟角色；switch 要求目标用户启用且 USER/ADMIN\n\n- campus精确筛选新吴校区/藕塘校区；status=0草稿/1发布/2关闭；keyword模糊匹配活动名称。\n- 按活动ID降序，不分页。",
+    "description": "权限：有效长期访问码；所属学生、班级、空间启用；请使用本人工作空间。列表/详情不另要求模拟角色；switch 要求目标用户启用且 USER/ADMIN\n\n- campus精确筛选校区A/校区B；status=0草稿/1发布/2关闭；keyword模糊匹配活动名称。\n- 按活动ID降序，不分页。",
     "operationId": "TicketController_getAllActivities",
     "tags": [
       "活动管理"
@@ -22,9 +22,9 @@
       {
         "name": "campus",
         "in": "query",
-        "description": "新吴校区或藕塘校区",
+        "description": "校区A或校区B",
         "required": false,
-        "example": "新吴校区",
+        "example": "校区A",
         "schema": {
           "type": "string"
         }
@@ -113,12 +113,12 @@
                       },
                       "campus": {
                         "type": "string",
-                        "description": "新吴校区或藕塘校区",
+                        "description": "校区A或校区B",
                         "maxLength": 50,
                         "nullable": true,
                         "enum": [
-                          "新吴校区",
-                          "藕塘校区"
+                          "校区A",
+                          "校区B"
                         ]
                       },
                       "location": {
@@ -186,8 +186,8 @@
                   "workspaceId": 40,
                   "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
                   "coverUrl": null,
-                  "campus": "新吴校区",
-                  "location": "新吴校区大学生活动中心",
+                  "campus": "校区A",
+                  "location": "校区A学生活动中心",
                   "status": 1,
                   "quota": 30,
                   "bookedCount": 0,
@@ -478,12 +478,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -549,8 +549,8 @@
                 "workspaceId": 40,
                 "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
                 "coverUrl": null,
-                "campus": "新吴校区",
-                "location": "新吴校区大学生活动中心",
+                "campus": "校区A",
+                "location": "校区A学生活动中心",
                 "status": 1,
                 "quota": 30,
                 "bookedCount": 0,
@@ -838,10 +838,10 @@
               },
               "campus": {
                 "type": "string",
-                "description": "新吴校区或藕塘校区；≤50字符；其他规则见业务说明",
+                "description": "校区A或校区B；≤50字符；其他规则见业务说明",
                 "enum": [
-                  "新吴校区",
-                  "藕塘校区"
+                  "校区A",
+                  "校区B"
                 ],
                 "maxLength": 50
               },
@@ -890,8 +890,8 @@
             "activityName": "校园秋季观影活动",
             "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
             "coverUrl": null,
-            "campus": "新吴校区",
-            "location": "新吴校区大学生活动中心",
+            "campus": "校区A",
+            "location": "校区A学生活动中心",
             "quota": 30,
             "bookingStartTime": "2026-11-01T08:00:00",
             "bookingEndTime": "2026-11-02T12:00:00",
@@ -957,12 +957,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -1028,8 +1028,8 @@
                 "workspaceId": 40,
                 "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
                 "coverUrl": null,
-                "campus": "新吴校区",
-                "location": "新吴校区大学生活动中心",
+                "campus": "校区A",
+                "location": "校区A学生活动中心",
                 "status": 0,
                 "quota": 30,
                 "bookedCount": 0,
@@ -1328,10 +1328,10 @@
               },
               "campus": {
                 "type": "string",
-                "description": "新吴校区或藕塘校区；≤50字符；其他规则见业务说明",
+                "description": "校区A或校区B；≤50字符；其他规则见业务说明",
                 "enum": [
-                  "新吴校区",
-                  "藕塘校区"
+                  "校区A",
+                  "校区B"
                 ],
                 "maxLength": 50
               },
@@ -1380,8 +1380,8 @@
             "activityName": "校园秋季观影活动",
             "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
             "coverUrl": null,
-            "campus": "新吴校区",
-            "location": "新吴校区大学生活动中心",
+            "campus": "校区A",
+            "location": "校区A学生活动中心",
             "quota": 30,
             "bookingStartTime": "2026-11-01T08:00:00",
             "bookingEndTime": "2026-11-02T12:00:00",
@@ -1447,12 +1447,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -1518,8 +1518,8 @@
                 "workspaceId": 40,
                 "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
                 "coverUrl": null,
-                "campus": "新吴校区",
-                "location": "新吴校区大学生活动中心",
+                "campus": "校区A",
+                "location": "校区A学生活动中心",
                 "status": 0,
                 "quota": 30,
                 "bookedCount": 0,
@@ -1948,12 +1948,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -2019,8 +2019,8 @@
                 "workspaceId": 40,
                 "description": "面向在校师生开放报名，凭有效票券入场参加观影活动。",
                 "coverUrl": null,
-                "campus": "新吴校区",
-                "location": "新吴校区大学生活动中心",
+                "campus": "校区A",
+                "location": "校区A学生活动中心",
                 "status": 1,
                 "quota": 30,
                 "bookedCount": 0,

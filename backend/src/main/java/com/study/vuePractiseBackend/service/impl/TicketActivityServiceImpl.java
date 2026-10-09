@@ -1,5 +1,6 @@
 package com.study.vuePractiseBackend.service.impl;
 
+import com.study.vuePractiseBackend.util.CampusAliasUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.study.vuePractiseBackend.dto.TicketActivityDTO;
@@ -215,8 +216,8 @@ public class TicketActivityServiceImpl extends ServiceImpl<TicketActivityMapper,
     private void copyValidatedFields(TicketActivity activity, TicketActivityDTO dto) {
         String activityName = requireText(dto.getActivityName(), "活动名称", 100);
         String campus = requireText(dto.getCampus(), "校区", 50);
-        if (!"新吴校区".equals(campus) && !"藕塘校区".equals(campus)) {
-            throw new IllegalArgumentException("校区只能为新吴校区或藕塘校区");
+        if (!CampusAliasUtil.isAccepted(campus)) {
+            throw new IllegalArgumentException(CampusAliasUtil.invalidMessage());
         }
         String location = requireText(dto.getLocation(), "活动地点", 200);
 
@@ -270,8 +271,8 @@ public class TicketActivityServiceImpl extends ServiceImpl<TicketActivityMapper,
         requireText(activity.getActivityName(), "活动名称", 100);
         requireText(activity.getLocation(), "活动地点", 200);
         String campus = activity.getCampus();
-        if (!"新吴校区".equals(campus) && !"藕塘校区".equals(campus)) {
-            throw new IllegalArgumentException("校区只能为新吴校区或藕塘校区");
+        if (!CampusAliasUtil.isAccepted(campus)) {
+            throw new IllegalArgumentException(CampusAliasUtil.invalidMessage());
         }
         if (activity.getQuota() == null || activity.getQuota() <= 0) {
             throw new IllegalArgumentException("活动名额必须大于0");

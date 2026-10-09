@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify'
 import { useAuth } from '../stores/auth'
 import { API_BASE, system, practice, practicePath, errorText, saveBlob, filename } from '../api/client'
 import { copy, notify } from '../composables/ui'
+import { privacyText, privacyValue } from '../utils/privacy'
 import { validate, safeExample } from '../api/schema'
 import { exclusive } from '../composables/cooldown'
 import SchemaTable from './SchemaTable.vue'
@@ -41,7 +42,7 @@ const isPractice = computed(() => props.op.project !== 'system')
 // 教师可以阅读业务文档，但不在这里发送业务请求
 const executable = computed(() => student.value || !isPractice.value)
 const special = computed(() => ['/login', '/logout'].includes(props.op.path))
-const description = computed(() => DOMPurify.sanitize(marked.parse(props.op.description || '')))
+const description = computed(() => DOMPurify.sanitize(marked.parse(privacyText(props.op.description || ''))))
 
 const fullUrl = computed(() => {
   let path = props.op.path.replace('{accessCode}', auth.user?.apiAccessCode || '{本人访问码}')
@@ -60,7 +61,7 @@ function fill() {
   for (const p of parameters.value) {
     if (p.in !== 'path' && !/Id$|No$/.test(p.name) && p.example != null) params.value[p.name] = String(p.example)
   }
-  body.value = JSON.stringify(safeExample(json.value?.example || {}), null, 2)
+  body.value = privacyText(JSON.stringify(safeExample(json.value?.example || {}), null, 2))
   notify('已填入示例。请从当前空间查询并填写真实ID。')
 }
 
@@ -188,10 +189,10 @@ async function send() {
       url,
       time: Math.round(performance.now() - started),
       status: r.status,
-      text: typeof data === 'string' ? data : JSON.stringify(data, null, 2)
+      text: typeof data === 'string' ? privacyText(data) : JSON.stringify(privacyValue(data), null, 2)
     }
     if (r.status >= 400 || (data?.code && data.code !== 200)) {
-      error.value = data?.message || '请求未成功，请查看实际响应。'
+      error.value = privacyText(data?.message) || '请求未成功，请查看实际响应。'
     }
   }
 
@@ -288,7 +289,7 @@ onUnmounted(() => { if (preview.value) URL.revokeObjectURL(preview.value) })
 
       <section v-if="response" class="response">
         <div class="section-heading">
-          <h3>实际响应</h3>
+          <h3>实际响应（展示已脱敏）</h3>
           <button class="secondary" @click="copy(response.text)">复制响应</button>
         </div>
         <div class="response-meta"><span>HTTP {{ response.status }}</span><span>{{ response.time }} 毫秒</span></div>

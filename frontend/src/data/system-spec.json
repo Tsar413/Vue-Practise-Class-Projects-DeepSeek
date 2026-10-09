@@ -271,7 +271,7 @@
                 "userId": "2504110101",
                 "token": "<登录返回的原始64位token>",
                 "apiAccessCode": "<学生登录返回的64位访问码>",
-                "realName": "张老师",
+                "realName": "教师示例3",
                 "role": "STUDENT"
               }
             }
@@ -2608,8 +2608,8 @@
           },
           "example": {
             "id": "2504110101",
-            "username": "张老师",
-            "realName": "张老师",
+            "username": "教师示例3",
+            "realName": "教师示例3",
             "classId": "2501",
             "role": "STUDENT"
           }
@@ -2987,8 +2987,8 @@
           },
           "example": {
             "id": "2504110101",
-            "username": "张老师",
-            "realName": "张老师",
+            "username": "教师示例3",
+            "realName": "教师示例3",
             "classId": "2501",
             "role": "STUDENT"
           }
@@ -3774,8 +3774,8 @@
               "data": [
                 {
                   "id": "2504110101",
-                  "username": "张老师",
-                  "realName": "张老师",
+                  "username": "教师示例3",
+                  "realName": "教师示例3",
                   "classId": "2501",
                   "role": "STUDENT",
                   "status": 1,
@@ -4113,8 +4113,8 @@
               "message": "操作成功",
               "data": {
                 "id": "2504110101",
-                "username": "张老师",
-                "realName": "张老师",
+                "username": "教师示例3",
+                "realName": "教师示例3",
                 "classId": "2501",
                 "role": "STUDENT",
                 "status": 1,
@@ -4766,8 +4766,8 @@
               "data": [
                 {
                   "id": "2504110101",
-                  "username": "张老师",
-                  "realName": "张老师",
+                  "username": "教师示例3",
+                  "realName": "教师示例3",
                   "classId": "2501",
                   "role": "STUDENT",
                   "status": 1,

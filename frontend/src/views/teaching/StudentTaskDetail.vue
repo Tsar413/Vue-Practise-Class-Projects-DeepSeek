@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { teaching, errorText } from '../../api/teaching'
 import { markdown } from '../../composables/markdown'
+import { privacyText } from '../../utils/privacy'
 
 const route = useRoute()
 const task = ref(null)
@@ -16,6 +17,8 @@ const notice = ref('')
 
 const form = ref({ projectUrl: '', content: '', process: '' })
 const sections = ref([{ title: '实现效果', content: '', attachmentIds: [] }])
+
+
 
 const objectiveHtml = computed(() => markdown(task.value?.objective || ''))
 const requirementHtml = computed(() => markdown(task.value?.requirement || ''))
@@ -204,7 +207,7 @@ onMounted(load)
   <section class="page-head">
     <div>
       <span class="eyebrow">学生 · 任务详情</span>
-      <h1>{{ task?.title || '任务' }}</h1>
+      <h1>{{ privacyText(task?.title || '任务') }}</h1>
       <p v-if="task">
         截止 {{ task.deadline }}
         <template v-if="task.expired"> · 已过截止{{ task.allowLate ? '（允许逾期，提交会标记逾期）' : '（不允许逾期提交）' }}</template>
@@ -256,11 +259,11 @@ onMounted(load)
       </label>
       <label class="wide">
         <span>完成说明（必填）</span>
-        <textarea v-model="form.content" rows="5" placeholder="说明你完成了哪些功能、关键接口与结果"></textarea>
+        <textarea :value="privacyText(form.content)" @input="form.content = $event.target.value" rows="5" placeholder="说明你完成了哪些功能、关键接口与结果"></textarea>
       </label>
       <label class="wide">
         <span>问题与解决过程</span>
-        <textarea v-model="form.process" rows="4" placeholder="遇到什么问题、如何定位与解决"></textarea>
+        <textarea :value="privacyText(form.process)" @input="form.process = $event.target.value" rows="4" placeholder="遇到什么问题、如何定位与解决"></textarea>
       </label>
     </div>
 
@@ -269,7 +272,7 @@ onMounted(load)
     <input type="file" accept="image/png,image/jpeg,image/webp" :disabled="uploading" @change="upload" />
     <ul class="shot-list">
       <li v-for="item in attachments" :key="item.id">
-        <button class="text-button" @click="openImage(item.id)">{{ item.originalName }}</button>
+        <button class="text-button" @click="openImage(item.id)">图片 {{ item.id }}</button>
         <span class="muted">{{ Math.round(item.fileSize / 1024) }} KB</span>
         <button class="text-button danger" @click="removeAttachment(item.id)">删除</button>
       </li>
@@ -279,16 +282,16 @@ onMounted(load)
     <article v-for="(section, index) in sections" :key="index" class="section-block">
       <label>
         <span>章节标题</span>
-        <input v-model.trim="section.title" maxlength="200" />
+        <input :value="privacyText(section.title)" @input="section.title = $event.target.value" maxlength="200" />
       </label>
       <label>
         <span>章节说明</span>
-        <textarea v-model="section.content" rows="3"></textarea>
+        <textarea :value="privacyText(section.content)" @input="section.content = $event.target.value" rows="3"></textarea>
       </label>
       <div class="shot-row">
         <label v-for="item in attachments" :key="item.id" class="inline">
           <input type="checkbox" :checked="section.attachmentIds.includes(item.id)" @change="toggleAttachment(section, item.id)" />
-          <span>{{ item.originalName }}</span>
+          <span>图片 {{ item.id }}</span>
         </label>
       </div>
       <button class="text-button danger" :disabled="sections.length <= 1" @click="removeSection(index)">删除该章节</button>
@@ -317,14 +320,14 @@ onMounted(load)
         <span>{{ version.createTime }}<template v-if="version.late"> · 逾期提交</template></span>
       </header>
       <p v-if="version.projectUrl">链接：<a :href="version.projectUrl" target="_blank" rel="noopener noreferrer">{{ version.projectUrl }}</a></p>
-      <p class="pre">{{ version.content }}</p>
-      <p v-if="version.process" class="pre muted">问题与解决过程：{{ version.process }}</p>
+      <p class="pre">{{ privacyText(version.content) }}</p>
+      <p v-if="version.process" class="pre muted">问题与解决过程：{{ privacyText(version.process) }}</p>
       <div v-for="section in version.sections" :key="section.id || section.title" class="section-block">
-        <h4>{{ section.title }}</h4>
-        <p class="pre">{{ section.content }}</p>
+        <h4>{{ privacyText(section.title) }}</h4>
+        <p class="pre">{{ privacyText(section.content) }}</p>
         <div class="shot-row">
           <button v-for="shot in section.attachments" :key="shot.id" class="shot" @click="openImage(shot.id)">
-            {{ shot.originalName }}
+            图片 {{ shot.id }}
           </button>
         </div>
       </div>
@@ -333,7 +336,7 @@ onMounted(load)
           {{ evalItem.decision === 'PASS' ? '通过' : '退回修改' }}
           <template v-if="evalItem.score !== null && evalItem.score !== undefined"> · {{ evalItem.score }} 分</template>
           · {{ evalItem.createTime }}
-          <div v-if="evalItem.comment" class="pre">{{ evalItem.comment }}</div>
+          <div v-if="evalItem.comment" class="pre">{{ privacyText(evalItem.comment) }}</div>
         </li>
       </ul>
       <p v-else class="hint">该版本尚未评价。</p>

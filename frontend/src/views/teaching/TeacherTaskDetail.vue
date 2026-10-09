@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { teaching, errorText } from '../../api/teaching'
 import { markdown } from '../../composables/markdown'
+import { personName, privacyText } from '../../utils/privacy'
 
 const route = useRoute()
 const task = ref(null)
@@ -123,7 +124,7 @@ onMounted(load)
   <section class="page-head">
     <div>
       <span class="eyebrow">教师 · 任务详情</span>
-      <h1>{{ task?.title || '任务' }}</h1>
+      <h1>{{ privacyText(task?.title || '任务') }}</h1>
       <p v-if="task">
         {{ task.project === 'TICKET' ? '校园抢票' : '校园设备报修' }} ·
         截止 {{ task.deadline }} · 满分 {{ task.fullScore }} ·
@@ -179,7 +180,7 @@ onMounted(load)
       <tbody>
         <tr v-for="row in rows" :key="row.studentId">
           <td>{{ row.studentId }}</td>
-          <td>{{ row.studentName }}</td>
+          <td>{{ personName(row.studentName, { role: 'STUDENT', id: row.studentId }) }}</td>
           <td>{{ row.classId }}</td>
           <td><span class="tag" :class="stateClass[row.state]">{{ stateText[row.state] }}</span></td>
           <td>{{ row.versionNo ? `第 ${row.versionNo} 版` : '—' }}</td>
@@ -195,7 +196,7 @@ onMounted(load)
 
   <section v-if="detail" class="panel">
     <div class="section-heading">
-      <h2>{{ detail.studentName }}（{{ detail.studentId }}）的成果</h2>
+      <h2>{{ personName(detail.studentName, { role: 'STUDENT', id: detail.studentId }) }}（{{ detail.studentId }}）的成果</h2>
       <span>{{ versions.length }} 个正式版本</span>
     </div>
 
@@ -205,14 +206,14 @@ onMounted(load)
         <span>{{ version.createTime }}<template v-if="version.late"> · 逾期提交</template></span>
       </header>
       <p v-if="version.projectUrl">成果链接：<a :href="version.projectUrl" target="_blank" rel="noopener noreferrer">{{ version.projectUrl }}</a></p>
-      <p class="pre">{{ version.content }}</p>
-      <p v-if="version.process" class="pre muted">问题与解决过程：{{ version.process }}</p>
+      <p class="pre">{{ privacyText(version.content) }}</p>
+      <p v-if="version.process" class="pre muted">问题与解决过程：{{ privacyText(version.process) }}</p>
       <div v-for="section in version.sections" :key="section.id || section.title" class="section-block">
-        <h4>{{ section.title }}</h4>
-        <p class="pre">{{ section.content }}</p>
+        <h4>{{ privacyText(section.title) }}</h4>
+        <p class="pre">{{ privacyText(section.content) }}</p>
         <div class="shot-row">
           <button v-for="shot in section.attachments" :key="shot.id" class="shot" @click="openImage(shot.id)">
-            {{ shot.originalName }}（{{ Math.round(shot.fileSize / 1024) }} KB）
+            图片 {{ shot.id }}（{{ Math.round(shot.fileSize / 1024) }} KB）
           </button>
         </div>
       </div>
@@ -220,8 +221,8 @@ onMounted(load)
         <li v-for="evalItem in version.evaluations" :key="evalItem.id">
           {{ evalItem.decision === 'PASS' ? '通过' : '退回修改' }}
           <template v-if="evalItem.score !== null && evalItem.score !== undefined"> · {{ evalItem.score }} 分</template>
-          · {{ evalItem.teacherName || evalItem.teacherId }} · {{ evalItem.createTime }}
-          <div v-if="evalItem.comment" class="pre">{{ evalItem.comment }}</div>
+          · {{ personName(evalItem.teacherName, { role: 'TEACHER', id: evalItem.teacherId }) }} · {{ evalItem.createTime }}
+          <div v-if="evalItem.comment" class="pre">{{ privacyText(evalItem.comment) }}</div>
         </li>
       </ul>
       <p v-else class="hint">该版本尚未评价。</p>

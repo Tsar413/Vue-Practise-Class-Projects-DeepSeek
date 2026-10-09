@@ -3,11 +3,14 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { teaching, errorText } from '../../api/teaching'
 import { sys } from '../../api/client'
+import { className as aliasClassName, privacyText } from '../../utils/privacy'
 
 const route = useRoute()
 const router = useRouter()
 
 const editing = computed(() => Boolean(route.params.id))
+
+
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
@@ -124,7 +127,7 @@ onMounted(load)
   <form v-else class="panel form-grid" @submit.prevent="save">
     <label>
       <span>任务标题</span>
-      <input v-model.trim="form.title" maxlength="200" required placeholder="例如：完成抢票报名接口的联调" />
+      <input :value="privacyText(form.title)" @input="form.title = $event.target.value" maxlength="200" required placeholder="例如：完成抢票报名接口的联调" />
     </label>
 
     <label>
@@ -137,17 +140,17 @@ onMounted(load)
 
     <label class="wide">
       <span>教学目标</span>
-      <textarea v-model="form.objective" rows="3" placeholder="本次任务希望学生掌握的能力"></textarea>
+      <textarea :value="privacyText(form.objective)" @input="form.objective = $event.target.value" rows="3" placeholder="本次任务希望学生掌握的能力"></textarea>
     </label>
 
     <label class="wide">
       <span>任务要求</span>
-      <textarea v-model="form.requirement" rows="6" required placeholder="支持 Markdown，例如：&#10;- 使用 POST /api/practice/{accessCode}/ticket/records 报名&#10;- 处理名额不足的情况"></textarea>
+      <textarea :value="privacyText(form.requirement)" @input="form.requirement = $event.target.value" rows="6" required placeholder="支持 Markdown，例如：&#10;- 使用 POST /api/practice/{accessCode}/ticket/records 报名&#10;- 处理名额不足的情况"></textarea>
     </label>
 
     <label class="wide">
       <span>验收标准</span>
-      <textarea v-model="form.acceptance" rows="4" placeholder="例如：接口返回 200，数据库出现对应报名记录"></textarea>
+      <textarea :value="privacyText(form.acceptance)" @input="form.acceptance = $event.target.value" rows="4" placeholder="例如：接口返回 200，数据库出现对应报名记录"></textarea>
     </label>
 
     <label class="wide">
@@ -175,7 +178,7 @@ onMounted(load)
       <p v-if="!classes.length" class="hint">没有可选班级，请先在“班级管理”中创建。</p>
       <label v-for="item in classes" :key="item.id" class="inline">
         <input type="checkbox" :checked="form.classIds.includes(item.id)" @change="toggleClass(item.id)" />
-        <span>{{ item.className }}（{{ item.id }}）</span>
+        <span>{{ aliasClassName(item.className, item.id) }}（{{ item.id }}）</span>
       </label>
     </fieldset>
 

@@ -127,6 +127,7 @@ node scripts/make-fixtures.mjs
 | [docs/07-final-acceptance.md](docs/07-final-acceptance.md) | 上一轮最终结果、分工、证据和剩余限制 |
 | [docs/08-teaching-and-ai-tutor.md](docs/08-teaching-and-ai-tutor.md) | 新增：教学任务、成果版本、教师评价与 AI 实训辅导（表/接口/规则/配置/测试） |
 | [docs/06-review-fixes.md](docs/06-review-fixes.md) | 第二轮审查：问题、修复与验证记录 |
+| [docs/12-site-anonymization.md](docs/12-site-anonymization.md) | 全站展示脱敏：实现范围、校区兼容与剩余限制 |
 | [docs/verification-api.txt](docs/verification-api.txt) | API 对照验证逐项结果 |
 | [docs/verification-browser.txt](docs/verification-browser.txt) | 浏览器端到端验证逐项结果 |
 

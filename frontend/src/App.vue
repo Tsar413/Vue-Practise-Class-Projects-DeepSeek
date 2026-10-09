@@ -5,9 +5,16 @@ import { router } from './router'
 import { useAuth } from './stores/auth'
 import { ui, notify } from './composables/ui'
 import { errorText } from './api/client'
+import { personName } from './utils/privacy'
 
 const auth = useAuth()
 const route = useRoute()
+
+// 顶部展示用代称：不显示真实姓名，登录账号与权限仍是原值
+const displayName = computed(() => personName(auth.user?.realName, {
+  role: auth.user?.role,
+  id: auth.user?.userId
+}))
 
 // 导航按角色区分：教师看到管理入口，学生看到项目与重置入口
 const links = computed(() => auth.teacher
@@ -38,7 +45,7 @@ window.addEventListener('session-expired', () => {
       <div class="container topinner">
         <span><i class="dot"></i> 欢迎来到 Vue 实训课堂</span>
         <span v-if="auth.user">
-          {{ auth.user.realName }}
+          {{ displayName }}
           <span class="toprole">{{ auth.teacher ? '教师' : '学生' }}</span>
           <button class="text-button" @click="logout">退出登录</button>
         </span>

@@ -1,4 +1,5 @@
 <script setup>
+import { privacyText } from '../../utils/privacy'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { teaching, errorText } from '../../api/teaching'
@@ -63,7 +64,7 @@ onMounted(load)
         <span class="tag" :class="task.statusClass">{{ task.statusLabel }}</span>
         <span class="tag tag-project">{{ task.project === 'TICKET' ? '校园抢票' : '校园报修' }}</span>
       </div>
-      <h2>{{ task.title }}</h2>
+      <h2>{{ privacyText(task.title) }}</h2>
       <div class="task-card-body" v-html="task.requirementHtml"></div>
       <dl class="task-meta">
         <div><dt>截止</dt><dd>{{ task.deadlineText }}</dd></div>

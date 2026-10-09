@@ -343,7 +343,7 @@ public class AiTutorContextBuilder {
             if (!text.isEmpty()) {
                 text.append(", ");
             }
-            // 形如 campus(query:新吴校区|藕塘校区) 或 accessCode(path)
+            // 形如 campus(query:校区A|校区B) 或 accessCode(path)
             String detail = parameter.in();
             if (!parameter.enums().isEmpty()) {
                 String values = String.join("|", parameter.enums());

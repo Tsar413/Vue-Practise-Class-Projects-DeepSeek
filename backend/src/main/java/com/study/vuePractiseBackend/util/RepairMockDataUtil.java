@@ -26,22 +26,22 @@ public final class RepairMockDataUtil {
     public static List<RepairUser> createUsers(Long workspaceId, LocalDateTime now) {
         List<RepairUser> list = new ArrayList<>();
 
-        list.add(createUser(workspaceId, "R0001", "张明", "13800000001",
-                "电子信息工程系", "REPORTER", 1, now));
-        list.add(createUser(workspaceId, "R0002", "李华", "13800000002",
-                "机电工程系", "REPORTER", 1, now));
-        list.add(createUser(workspaceId, "R0003", "王芳", "13800000003",
-                "城轨工程系", "REPORTER", 1, now));
-        list.add(createUser(workspaceId, "R0004", "陈晨", "13800000004",
-                "电子信息工程系", "REPORTER", 0, now));
-        list.add(createUser(workspaceId, "M0001", "赵师傅", "13800000005",
-                "后勤管理处", "MAINTAINER", 1, now));
-        list.add(createUser(workspaceId, "M0002", "孙师傅", "13800000006",
-                "信息化建设与管理中心", "MAINTAINER", 1, now));
-        list.add(createUser(workspaceId, "A0001", "周老师", "13800000007",
-                "后勤管理处", "ADMIN", 1, now));
-        list.add(createUser(workspaceId, "A0002", "吴老师", "13800000008",
-                "信息化建设与管理中心", "ADMIN", 1, now));
+        list.add(createUser(workspaceId, "R0001", "模拟用户001", "13800000001",
+                "院系A", "REPORTER", 1, now));
+        list.add(createUser(workspaceId, "R0002", "模拟用户002", "13800000002",
+                "院系B", "REPORTER", 1, now));
+        list.add(createUser(workspaceId, "R0003", "模拟用户003", "13800000003",
+                "院系C", "REPORTER", 1, now));
+        list.add(createUser(workspaceId, "R0004", "模拟用户004", "13800000004",
+                "院系A", "REPORTER", 0, now));
+        list.add(createUser(workspaceId, "M0001", "维修员示例", "13800000005",
+                "行政部门A", "MAINTAINER", 1, now));
+        list.add(createUser(workspaceId, "M0002", "维修员示例2", "13800000006",
+                "行政部门B", "MAINTAINER", 1, now));
+        list.add(createUser(workspaceId, "A0001", "教师示例", "13800000007",
+                "行政部门A", "ADMIN", 1, now));
+        list.add(createUser(workspaceId, "A0002", "教师示例2", "13800000008",
+                "行政部门B", "ADMIN", 1, now));
 
         return list;
     }
@@ -50,19 +50,19 @@ public final class RepairMockDataUtil {
         List<RepairDevice> list = new ArrayList<>();
 
         list.add(createDevice(workspaceId, "D0001", "教室前后门锁及把手", "门窗木器",
-                "新吴校区", "致用楼412教室", 1, "前后门锁及门把手", now));
+                "校区A", "教学楼A412教室", 1, "前后门锁及门把手", now));
         list.add(createDevice(workspaceId, "D0002", "教室空调", "空调",
-                "新吴校区", "致用楼416教室", 1, "台式空调", now));
+                "校区A", "教学楼A416教室", 1, "台式空调", now));
         list.add(createDevice(workspaceId, "D0003", "教室照明灯", "电灯",
-                "新吴校区", "致用楼515教室", 1, "教室顶部照明灯", now));
+                "校区A", "教学楼A515教室", 1, "教室顶部照明灯", now));
         list.add(createDevice(workspaceId, "D0004", "洗手池水龙头", "卫生设施",
-                "新吴校区", "致用楼五楼卫生间", 1, "洗手池水龙头及连接管路", now));
+                "校区A", "教学楼A五楼卫生间", 1, "洗手池水龙头及连接管路", now));
         list.add(createDevice(workspaceId, "D0005", "教学电脑", "电脑",
-                "新吴校区", "致用楼516教室讲台", 1, "多媒体教学电脑", now));
+                "校区A", "教学楼A516教室讲台", 1, "多媒体教学电脑", now));
         list.add(createDevice(workspaceId, "D0006", "教室投影仪", "投影仪",
-                "藕塘校区", "教学楼201教室", 1, "教室多媒体投影仪", now));
+                "校区B", "教学楼B201教室", 1, "教室多媒体投影仪", now));
         list.add(createDevice(workspaceId, "D0007", "旧打印机", "打印机",
-                "新吴校区", "工会组长办公室", 0, "已停用，等待资产处理", now));
+                "校区A", "办公室A", 0, "已停用，等待资产处理", now));
 
         return list;
     }

@@ -153,7 +153,7 @@ class AiTutorUtilsTests {
         assertTrue(bundle.contextText().contains("body(application/json){"));
         // required 用 * 标记，枚举用 a|b
         assertTrue(bundle.contextText().contains("operatorId:integer*"));
-        assertTrue(bundle.contextText().contains("新吴校区|藕塘校区"));
+        assertTrue(bundle.contextText().contains("校区A|校区B"));
         assertTrue(bundle.contextText().contains("resp200"));
         for (AiTutorContextRefVO ref : bundle.refs()) {
             assertFalse(ref.getPath().contains("/ticket/"), "REPAIR 请求混入了抢票接口：" + ref.getPath());

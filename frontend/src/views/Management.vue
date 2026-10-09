@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { sys, errorText } from '../api/client'
+import { displayUser, displayClass, personName, aliasUserName, className as aliasClassName } from '../utils/privacy'
 import { notify } from '../composables/ui'
 import DataTable from '../components/DataTable.vue'
 import Modal from '../components/Modal.vue'
@@ -34,8 +35,16 @@ const saving = ref(false)
 const columns = computed(() => props.kind === 'classes'
   ? ['id', 'className', 'status', 'createTime']
   : props.kind === 'users'
-    ? ['id', 'realName', 'role', 'classId', 'status']
+    ? ['id', 'realName', 'username', 'role', 'classId', 'status']
     : ['id', 'studentId', 'status', 'createTime'])
+
+// 展示用副本：姓名与班级名称走脱敏层，原对象（rows）保持不变，
+// 编辑/删除等操作仍使用原始行数据，避免把别名写回数据库。
+const displayRows = computed(() => rows.value.map(row => {
+  if (props.kind === 'users') return displayUser(row)
+  if (props.kind === 'classes') return displayClass(row)
+  return row
+}))
 
 // 用请求序号丢弃过期响应，避免快速切换查询条件时旧结果覆盖新结果。
 let seq = 0
@@ -59,13 +68,41 @@ async function load() {
   }
 }
 
-function edit(row) {
+/** 按 ID 回原始行：表格传的是展示副本，直接编辑会把代称写回数据库。 */
+function originalRow(row) {
+  if (!row) return row
+  const key = row.studentId || row.id
+  return rows.value.find(item => (item.studentId || item.id) === key) || row
+}
+
+function edit(input) {
+  const row = originalRow(input)
   editing.value = !!row
-  form.value = row
-    ? { ...row }
-    : { id: '', className: '', realName: '', username: '', classId: '', role: 'STUDENT' }
+  // 编辑已有记录时表单字段保持**原始值**，不在表单里预填别名，
+  // 否则保存会把别名写回真实字段（用户明确禁止）。
+  // 界面上对应的输入框对已存在记录是只读的，并单独显示中性别名。
+  if (row) {
+    form.value = { ...row }
+  } else {
+    // 新建时用编号自动生成中性名称，不要求填写真实姓名
+    form.value = {
+      id: '',
+      className: '',
+      realName: '',
+      username: '',
+      classId: '',
+      role: 'STUDENT'
+    }
+  }
   modal.value = 'edit'
   error.value = ''
+}
+
+// 新建时按用户填写的编号生成中性姓名，避免要求教师填真实姓名
+function neutralNameFor(id, role) {
+  const value = String(id || '').trim()
+  if (!value) return ''
+  return personName('', { role, id: value })
 }
 
 async function save() {
@@ -74,11 +111,13 @@ async function save() {
   try {
     const f = form.value
     const data = props.kind === 'classes'
-      ? { id: f.id, className: f.className }
+      ? { id: f.id, className: editing.value ? f.className : (f.className || aliasClassName('', f.id)) }
       : {
           id: f.id,
           username: f.username,
-          realName: f.realName,
+          // 编辑：沿用数据库中的真实原值（表单只读，不会被别名覆盖）
+          // 新建：用「角色 + 编号」生成中性名称，无需填写真实姓名
+          realName: editing.value ? f.realName : (f.realName || neutralNameFor(f.id, f.role)),
           classId: f.role === 'STUDENT' ? f.classId : null,
           role: f.role
         }
@@ -107,7 +146,9 @@ async function show(row) {
   }
 }
 
-function action(type, row) {
+function action(type, input) {
+  // 确认框与后续操作始终基于原始行
+  const row = originalRow(input)
   pending.value = { type, row }
   project.value = 'ALL'
   modal.value = 'confirm'
@@ -120,8 +161,8 @@ const impact = computed(() => {
   if (!p) return ''
   if (p.type === 'delete') {
     return props.kind === 'classes'
-      ? `将删除班级「${p.row.className}」及关联学生、登录凭证、工作空间和项目数据，此操作不可恢复。`
-      : `将删除用户「${p.row.realName}」及其登录凭证、工作空间和项目数据，此操作不可恢复。`
+      ? `将删除班级「${aliasClassName(p.row.className, p.row.id)}」及关联学生、登录凭证、工作空间和项目数据，此操作不可恢复。`
+      : `将删除用户「${personName(p.row.realName, { role: p.row.role, id: p.row.id || p.row.userNo })}」及其登录凭证、工作空间和项目数据，此操作不可恢复。`
   }
   if (p.type === 'reset') {
     return `将重置学号 ${p.row.studentId} 的所选项目。重置后，本项目中的操作数据将恢复为初始数据，请确认已保存需要保留的内容。`
@@ -130,6 +171,7 @@ const impact = computed(() => {
     return `将为班级 ${lookup.value} 的学生初始化所选项目。后端会跳过已存在项目数据的空间。`
   }
   return `将${p.row.status === 1 ? '停用 / 暂停' : '启用'}${names[props.kind]} ${p.row.studentId || p.row.id}。停用可能使对应账号或空间无法继续访问。`
+  // 说明：这里用的是编号，不是姓名或班级名，无需脱敏
 })
 
 async function confirm() {
@@ -185,7 +227,7 @@ onMounted(() => {
     </form>
     <div v-if="error && !modal" class="alert error" role="alert">{{ error }}</div>
 
-    <DataTable :rows="rows" :columns="columns" actions>
+    <DataTable :rows="displayRows" :columns="columns" actions>
       <template #default="{ row }">
         <button class="text-button" :disabled="busy" @click="show(row)">详情</button>
         <button v-if="kind !== 'workspaces'" class="text-button" @click="edit(row)">编辑</button>
@@ -205,10 +247,25 @@ onMounted(() => {
       <label>{{ kind === 'classes' ? '班级编号' : '系统用户编号（学生为学号）' }}
         <input v-model="form.id" :disabled="editing" maxlength="50" required>
       </label>
-      <label v-if="kind === 'classes'">班级名称<input v-model="form.className" maxlength="50" required></label>
+      <template v-if="kind === 'classes'">
+        <label v-if="editing">班级名称（展示为中性代称，保存时保留原值）
+          <input :value="aliasClassName(form.className, form.id)" readonly>
+        </label>
+        <label v-else>班级名称（可留空，保存时按编号自动生成中性代称）
+          <input v-model="form.className" maxlength="50" placeholder="例如：班级A">
+        </label>
+      </template>
       <template v-else>
-        <label>姓名<input v-model="form.realName" maxlength="50" required></label>
-        <label>用户名（选填）<input v-model="form.username" maxlength="50"></label>
+        <label v-if="editing">姓名（展示为中性代称，保存时保留原值）
+          <input :value="personName(form.realName, { role: form.role, id: form.id })" readonly>
+        </label>
+        <label v-else>姓名（可留空，保存时按编号自动生成，无需填写真实姓名）
+          <input v-model="form.realName" maxlength="50" placeholder="留空即按编号生成">
+        </label>
+        <label v-if="editing">用户名（展示为中性代称，保存时保留原值）
+          <input :value="aliasUserName(form.username, personName(form.realName, { role: form.role, id: form.id }))" readonly>
+        </label>
+        <label v-else>用户名（选填）<input v-model="form.username" maxlength="50"></label>
         <label>系统角色
           <select v-model="form.role">
             <option value="STUDENT">学生</option>

@@ -20,16 +20,16 @@ public final class TicketMockDataUtil {
     public static List<TicketUser> createUsers(Long workspaceId) {
         List<TicketUser> list = new ArrayList<>();
 
-        list.add(createUser(workspaceId, "N0001", "张明", "13800000001",
-                "电子信息工程系", "新吴校区", "USER", 1));
-        list.add(createUser(workspaceId, "N0002", "李华", "13800000002",
-                "电子信息工程系", "新吴校区", "USER", 1));
-        list.add(createUser(workspaceId, "N0003", "王芳", "13800000003",
-                "机电工程系", "新吴校区", "USER", 1));
-        list.add(createUser(workspaceId, "N0004", "陈晨", "13800000004",
-                "汽车工程学院", "藕塘校区", "USER", 0));
-        list.add(createUser(workspaceId, "N0005", "赵敏", "13800000005",
-                "城轨工程系", "藕塘校区", "ADMIN", 1));
+        list.add(createUser(workspaceId, "N0001", "模拟用户001", "13800000001",
+                "院系A", "校区A", "USER", 1));
+        list.add(createUser(workspaceId, "N0002", "模拟用户002", "13800000002",
+                "院系A", "校区A", "USER", 1));
+        list.add(createUser(workspaceId, "N0003", "模拟用户003", "13800000003",
+                "院系B", "校区A", "USER", 1));
+        list.add(createUser(workspaceId, "N0004", "模拟用户004", "13800000004",
+                "院系D", "校区B", "USER", 0));
+        list.add(createUser(workspaceId, "N0005", "模拟用户005", "13800000005",
+                "院系C", "校区B", "ADMIN", 1));
 
         return list;
     }
@@ -41,7 +41,7 @@ public final class TicketMockDataUtil {
         list.add(createActivity(workspaceId,
                 "教职工电影观影活动",
                 "工会组织教职工集体观影，每人限领取一张票。",
-                "新吴校区", "荟聚金逸影城",
+                "校区A", "影城A",
                 1, 30,
                 now.minusDays(1), now.plusDays(2),
                 now.plusDays(3), now.plusDays(3).plusHours(2)));
@@ -50,7 +50,7 @@ public final class TicketMockDataUtil {
         list.add(createActivity(workspaceId,
                 "周末城市文化参观",
                 "参观城市博物馆，集合后统一乘车前往。",
-                "新吴校区", "新吴校区图书馆门口集合",
+                "校区A", "图书馆门口集合",
                 1, 20,
                 now.plusDays(1), now.plusDays(3),
                 now.plusDays(4), now.plusDays(4).plusHours(4)));
@@ -59,7 +59,7 @@ public final class TicketMockDataUtil {
         list.add(createActivity(workspaceId,
                 "羽毛球活动",
                 "提供场地和基础器材，欢迎师生参加。",
-                "新吴校区", "新吴校区体艺馆一楼",
+                "校区A", "体育馆一楼",
                 0, 16,
                 now.plusDays(2), now.plusDays(4),
                 now.plusDays(5), now.plusDays(5).plusHours(2)));
@@ -68,7 +68,7 @@ public final class TicketMockDataUtil {
         list.add(createActivity(workspaceId,
                 "工会读书交流会",
                 "分享阅读心得，交流教学与生活经验。",
-                "新吴校区", "新吴校区行政楼二楼报告厅",
+                "校区A", "行政楼二楼报告厅",
                 2, 25,
                 now.minusDays(7), now.minusDays(5),
                 now.minusDays(4), now.minusDays(4).plusHours(2)));

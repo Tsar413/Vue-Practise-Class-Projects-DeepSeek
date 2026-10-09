@@ -2,7 +2,7 @@
   {
     "summary": "查询设备列表",
     "deprecated": false,
-    "description": "权限：有效长期访问码；所属学生、班级、空间启用；请使用本人工作空间。列表/详情不另要求模拟角色；switch 要求目标用户启用且角色合法\n\n- status为0/1，campus仅新吴校区或藕塘校区，deviceType精确匹配。\n- keyword模糊匹配设备编号或名称；按deviceNo升序，不分页。\n- deviceType是普通文本大类，不存在deviceCategory字段。",
+    "description": "权限：有效长期访问码；所属学生、班级、空间启用；请使用本人工作空间。列表/详情不另要求模拟角色；switch 要求目标用户启用且角色合法\n\n- status为0/1，campus仅校区A或校区B，deviceType精确匹配。\n- keyword模糊匹配设备编号或名称；按deviceNo升序，不分页。\n- deviceType是普通文本大类，不存在deviceCategory字段。",
     "operationId": "RepairController_getAllDevices",
     "tags": [
       "设备管理"
@@ -22,9 +22,9 @@
       {
         "name": "campus",
         "in": "query",
-        "description": "新吴校区或藕塘校区",
+        "description": "校区A或校区B",
         "required": false,
-        "example": "新吴校区",
+        "example": "校区A",
         "schema": {
           "type": "string"
         }
@@ -123,12 +123,12 @@
                       },
                       "campus": {
                         "type": "string",
-                        "description": "新吴校区或藕塘校区",
+                        "description": "校区A或校区B",
                         "maxLength": 50,
                         "nullable": true,
                         "enum": [
-                          "新吴校区",
-                          "藕塘校区"
+                          "校区A",
+                          "校区B"
                         ]
                       },
                       "location": {
@@ -178,8 +178,8 @@
                   "deviceNo": "D0008",
                   "deviceName": "教室空调",
                   "deviceType": "空调",
-                  "campus": "新吴校区",
-                  "location": "致用楼416教室",
+                  "campus": "校区A",
+                  "location": "教学楼A416教室",
                   "status": 1,
                   "remark": "壁挂式空调",
                   "createTime": "2026-11-01 09:00:00",
@@ -468,12 +468,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -521,8 +521,8 @@
                 "deviceNo": "D0008",
                 "deviceName": "教室空调",
                 "deviceType": "空调",
-                "campus": "新吴校区",
-                "location": "致用楼416教室",
+                "campus": "校区A",
+                "location": "教学楼A416教室",
                 "status": 1,
                 "remark": "壁挂式空调",
                 "createTime": "2026-11-01 09:00:00",
@@ -806,10 +806,10 @@
               },
               "campus": {
                 "type": "string",
-                "description": "新吴校区或藕塘校区；≤50字符；其他规则见业务说明",
+                "description": "校区A或校区B；≤50字符；其他规则见业务说明",
                 "enum": [
-                  "新吴校区",
-                  "藕塘校区"
+                  "校区A",
+                  "校区B"
                 ],
                 "maxLength": 50
               },
@@ -839,8 +839,8 @@
             "deviceNo": "D0008",
             "deviceName": "教室空调",
             "deviceType": "空调",
-            "campus": "新吴校区",
-            "location": "致用楼416教室",
+            "campus": "校区A",
+            "location": "教学楼A416教室",
             "remark": "壁挂式空调"
           }
         }
@@ -903,12 +903,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -956,8 +956,8 @@
                 "deviceNo": "D0008",
                 "deviceName": "教室空调",
                 "deviceType": "空调",
-                "campus": "新吴校区",
-                "location": "致用楼416教室",
+                "campus": "校区A",
+                "location": "教学楼A416教室",
                 "status": 1,
                 "remark": "壁挂式空调",
                 "createTime": "2026-11-01 09:00:00",
@@ -1287,10 +1287,10 @@
               },
               "campus": {
                 "type": "string",
-                "description": "新吴校区或藕塘校区；≤50字符；其他规则见业务说明",
+                "description": "校区A或校区B；≤50字符；其他规则见业务说明",
                 "enum": [
-                  "新吴校区",
-                  "藕塘校区"
+                  "校区A",
+                  "校区B"
                 ],
                 "maxLength": 50
               },
@@ -1320,8 +1320,8 @@
             "deviceNo": "D0008",
             "deviceName": "教室空调",
             "deviceType": "空调",
-            "campus": "新吴校区",
-            "location": "致用楼416教室",
+            "campus": "校区A",
+            "location": "教学楼A416教室",
             "remark": "壁挂式空调"
           }
         }
@@ -1384,12 +1384,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -1437,8 +1437,8 @@
                 "deviceNo": "D0008",
                 "deviceName": "教室空调",
                 "deviceType": "空调",
-                "campus": "新吴校区",
-                "location": "致用楼416教室",
+                "campus": "校区A",
+                "location": "教学楼A416教室",
                 "status": 1,
                 "remark": "壁挂式空调",
                 "createTime": "2026-11-01 09:00:00",
@@ -1822,12 +1822,12 @@
                     },
                     "campus": {
                       "type": "string",
-                      "description": "新吴校区或藕塘校区",
+                      "description": "校区A或校区B",
                       "maxLength": 50,
                       "nullable": true,
                       "enum": [
-                        "新吴校区",
-                        "藕塘校区"
+                        "校区A",
+                        "校区B"
                       ]
                     },
                     "location": {
@@ -1875,8 +1875,8 @@
                 "deviceNo": "D0008",
                 "deviceName": "教室空调",
                 "deviceType": "空调",
-                "campus": "新吴校区",
-                "location": "致用楼416教室",
+                "campus": "校区A",
+                "location": "教学楼A416教室",
                 "status": 1,
                 "remark": "壁挂式空调",
                 "createTime": "2026-11-01 09:00:00",

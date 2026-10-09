@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { privacyText } from '../utils/privacy'
 
 // 必须配置后端完整地址；不配置就在启动时直接报错，避免请求发到错误地址
 const configured = import.meta.env.VITE_API_BASE_URL
@@ -55,7 +56,16 @@ export function unwrap(response) {
   return body
 }
 
+/**
+ * 统一错误提示文本。
+ * 服务端 message 可能带出自由文本（例如包含演示数据名称），
+ * 因此这里在返回前统一脱敏；不修改原始错误对象。
+ */
 export function errorText(e) {
+  return privacyText(rawErrorText(e))
+}
+
+function rawErrorText(e) {
   return e.response?.data?.message
     || (e.code === 'ECONNABORTED'
       ? '请求超时，请检查服务状态；请先查询结果再决定是否重新提交。'

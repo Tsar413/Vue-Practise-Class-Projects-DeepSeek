@@ -488,7 +488,7 @@ wrapper.eq(TicketActivity::getWorkspaceId, workspaceId);
 
 | 操作 | 方法 | 前置状态 | 结果 | 关键校验 |
 | --- | --- | --- | --- | --- |
-| 创建 | `saveNewActivity` | — | 强制写入 `status = 0`、`bookedCount = 0` | 操作人必须是**当前空间内** `role = ADMIN` 且 `status = 1` 的 `ticket_user`（否则控制器返回 403）；校区只能是「新吴校区」或「藕塘校区」；`quota > 0`；`报名开始 < 报名结束 ≤ 活动开始 < 活动结束`。注释明确「状态、报名人数由后端设置」 |
+| 创建 | `saveNewActivity` | — | 强制写入 `status = 0`、`bookedCount = 0` | 操作人必须是**当前空间内** `role = ADMIN` 且 `status = 1` 的 `ticket_user`（否则控制器返回 403）；校区只能是两个已登记值（对外文档与提示统一写作「校区A / 校区B」；实现上通过 CampusAliasUtil 同时兼容历史旧值）；`quota > 0`；`报名开始 < 报名结束 ≤ 活动开始 < 活动结束`。注释明确「状态、报名人数由后端设置」 |
 | 修改 | `updateActivity` | 仅 `0` 或 `1` | 状态不变 | 其他状态抛 409「当前活动状态不允许修改」；**已发布且已开始报名**（`now >= bookingStartTime`）后四个时间字段任一变化即 409「报名开始后不能修改报名及活动时间」；`quota` 不得小于 `bookedCount` |
 | 发布 | `changeActivityStatus`（目标 1） | `0` → `1` | 已发布 | 目标状态只允许 `1` 或 `2`；`checkPublishable` 复核名称、地点、校区、名额、人数与四个时间，且 `now < bookingEndTime`，否则 409「报名已经结束，不能发布活动」 |
 | 关闭 | `changeActivityStatus`（目标 2） | `1` → `2` | 已关闭，**保留报名记录** | 源码注释「已发布活动可以关闭，保留报名记录」 |

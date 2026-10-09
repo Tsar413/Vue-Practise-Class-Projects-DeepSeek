@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useAuth } from '../stores/auth'
 import { query, binary, practicePath, filename, saveBlob, errorText } from '../api/client'
 import { roles, notify } from '../composables/ui'
+import { personName } from '../utils/privacy'
 import DataTable from '../components/DataTable.vue'
 import Detail from '../components/Detail.vue'
 import Modal from '../components/Modal.vue'
@@ -244,7 +245,7 @@ watch(() => route.query.project, v => {
         <select v-model="identity" @change="changeIdentity">
           <option value="">请选择模拟用户</option>
           <option v-for="u in availableUsers" :key="u.id" :value="String(u.id)">
-            {{ u.realName || u.name || u.userNo }} · {{ roles[u.role] }} · 数据库ID {{ u.id }}
+            {{ personName(u.realName || u.name, { role: u.role, id: u.userNo || u.id }) }} · {{ roles[u.role] }} · 数据库ID {{ u.id }}
           </option>
         </select>
       </label>

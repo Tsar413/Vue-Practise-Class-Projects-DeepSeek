@@ -1,5 +1,6 @@
 package com.study.vuePractiseBackend.service.impl;
 
+import com.study.vuePractiseBackend.util.CampusAliasUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -110,7 +111,14 @@ public class RepairOrderServiceImpl extends ServiceImpl<RepairOrderMapper, Repai
             wrapper.eq(RepairOrder::getStatus, status);
         }
         if (campus != null) {
-            wrapper.eq(RepairOrder::getCampus, campus);
+            // 兼容层：用中性校区筛选时同时匹配库内可能存在的历史旧值，
+            // 保证旧记录仍能被查询到（不修改任何原始记录）。
+            java.util.List<String> campusValues = CampusAliasUtil.queryValues(campus);
+            if (campusValues.size() == 1) {
+                wrapper.eq(RepairOrder::getCampus, campusValues.get(0));
+            } else {
+                wrapper.in(RepairOrder::getCampus, campusValues);
+            }
         }
         if (deviceType != null) {
             wrapper.eq(RepairOrder::getDeviceType, deviceType);
@@ -779,8 +787,8 @@ public class RepairOrderServiceImpl extends ServiceImpl<RepairOrderMapper, Repai
     }
 
     private void checkCampus(String campus) {
-        if (!"新吴校区".equals(campus) && !"藕塘校区".equals(campus)) {
-            throw new IllegalArgumentException("校区只能为新吴校区或藕塘校区");
+        if (!CampusAliasUtil.isAccepted(campus)) {
+            throw new IllegalArgumentException(CampusAliasUtil.invalidMessage());
         }
     }
 
