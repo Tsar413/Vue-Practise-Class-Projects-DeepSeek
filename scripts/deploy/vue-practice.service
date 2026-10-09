@@ -1,0 +1,28 @@
+[Unit]
+Description=Vue practice teaching platform
+After=network.target mysql.service
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=vue-practice
+Group=vue-practice
+WorkingDirectory=/opt/vue-practice/data
+EnvironmentFile=/etc/vue-practice/application.env
+EnvironmentFile=/etc/vue-practice/ai-tutor.env
+ExecStart=/usr/bin/java -Xms128m -Xmx384m -XX:MaxMetaspaceSize=192m -XX:+ExitOnOutOfMemoryError -Duser.timezone=Asia/Shanghai -jar /opt/vue-practice/current/backend/app.jar
+Restart=on-failure
+RestartSec=8
+TimeoutStopSec=45
+SuccessExitStatus=143
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/vue-practice/data /var/log/vue-practice
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
